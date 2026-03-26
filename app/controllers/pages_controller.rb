@@ -21,7 +21,18 @@ class PagesController < ActionController::Base
   end
 
   # 채널 랭킹 페이지
+  # @categories: 카테고리 탭 목록
+  # @selected_category: URL 파라미터에서 선택한 카테고리 (없으면 전체)
+  # @channels: 선택한 카테고리로 필터링 후 신뢰도 내림차순 정렬된 채널 목록
   def ranking
+    @categories = %w[정치 경제 사회 국제]
+    @selected_category = params[:category].presence
+
+    @channels = if @selected_category.present?
+      Channel.by_category(@selected_category).ranked_by_trust
+    else
+      Channel.ranked_by_trust
+    end
   end
 
   # 내 팩트체크 기록 페이지
