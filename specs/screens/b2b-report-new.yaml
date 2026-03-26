@@ -1,0 +1,49 @@
+version: "2.0"
+
+screen:
+  name: B2B 기업정보 입력
+  route: /reports/new
+  layout: dashboard
+  auth: true
+  roles: [b2b]
+
+data_requirements:
+  - resource: b2b_reports
+    needs: [company_name, industry, product_info, target_categories]
+
+components:
+  - id: sidebar_nav
+    type: navigation
+    position: sidebar
+    function: 사이드 메뉴
+
+  - id: company_form
+    type: form
+    position: main
+    function: 기업정보 + 상품정보 입력 (기업명, 업종, 광고 상품/서비스 정보, 희망 타겟 카테고리)
+    events:
+      - on: submit
+        do: AI 분석 시작 요청, 분석 완료 후 리포트(/reports/:id)로 이동
+
+connections:
+  navigations:
+    - from: company_form
+      to: /reports/:id
+
+tests:
+  - name: 폼 입력 및 제출
+    when: 기업정보 입력 후 "AI 분석 시작" 클릭
+    then:
+      - 분석 요청 전송
+      - 로딩 상태 표시
+
+  - name: 필수 필드 검증
+    when: 필수 항목 미입력 상태에서 제출
+    then:
+      - 에러 메시지 표시
+      - 미입력 필드 강조
+
+  - name: 분석 완료 후 이동
+    when: AI 분석 완료
+    then:
+      - 리포트 상세(/reports/:id)로 이동

@@ -1,0 +1,64 @@
+# 공통 타입 정의
+# Factis — 화면 명세에서 사용되는 공통 타입
+
+types:
+  Verdict:
+    type: enum
+    values:
+      - true           # 사실
+      - mostly_true    # 대체로 사실
+      - half_true      # 반반
+      - mostly_false   # 대체로 거짓
+      - false          # 거짓
+      - unverifiable   # 검증 불가
+
+  FactCheckStatus:
+    type: enum
+    values:
+      - pending        # 대기중
+      - analyzing      # 분석중
+      - completed      # 완료
+      - failed         # 실패
+
+  SubscriptionPlan:
+    type: enum
+    values:
+      - b2c_basic      # B2C 기본
+      - b2c_premium    # B2C 프리미엄
+      - b2b_standard   # B2B 표준
+      - b2b_enterprise # B2B 엔터프라이즈
+
+  SubscriptionStatus:
+    type: enum
+    values:
+      - active         # 활성
+      - canceled       # 취소됨
+      - expired        # 만료됨
+
+  UserType:
+    type: enum
+    values:
+      - b2c            # 일반 사용자
+      - b2b            # 기업 사용자
+
+  Category:
+    type: enum
+    values:
+      - politics       # 정치
+      - economy        # 경제
+      - society        # 사회
+      - international  # 국제
+
+  DownloadFormat:
+    type: enum
+    values:
+      - pdf
+      - md
+      - docx
+      - hwp
+
+  ScoreRange:
+    type: decimal
+    min: 0
+    max: 100
+    description: 팩트 점수 및 신뢰도 점수 범위

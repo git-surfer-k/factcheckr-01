@@ -1,0 +1,61 @@
+# 화면 인덱스
+# Factis — 전체 화면 목록
+
+screens:
+  b2c:
+    - file: b2c-auth.yaml
+      name: 로그인/회원가입
+      route: /auth
+
+    - file: b2c-home.yaml
+      name: 홈
+      route: /
+
+    - file: b2c-analyze.yaml
+      name: 분석 로딩
+      route: /analyze/:id
+
+    - file: b2c-report-detail.yaml
+      name: 리포트 상세
+      route: /reports/:id
+
+    - file: b2c-download-modal.yaml
+      name: 다운로드 형식 선택
+      route: /reports/:id/download
+
+    - file: b2c-channel-detail.yaml
+      name: 채널 상세
+      route: /channels/:id
+
+    - file: b2c-ranking.yaml
+      name: 채널 랭킹
+      route: /ranking
+
+    - file: b2c-history.yaml
+      name: 내 기록
+      route: /history
+
+    - file: b2c-settings.yaml
+      name: 설정
+      route: /settings
+
+  b2b:
+    - file: b2b-auth.yaml
+      name: B2B 로그인/회원가입
+      route: /login
+
+    - file: b2b-dashboard.yaml
+      name: B2B 대시보드
+      route: /dashboard
+
+    - file: b2b-report-new.yaml
+      name: B2B 기업정보 입력
+      route: /reports/new
+
+    - file: b2b-report-detail.yaml
+      name: B2B AI 추천 채널 + 심층 리포트
+      route: /reports/:id
+
+    - file: b2b-billing.yaml
+      name: B2B 결제/구독 관리
+      route: /billing

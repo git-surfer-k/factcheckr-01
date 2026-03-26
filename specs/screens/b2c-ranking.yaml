@@ -1,0 +1,69 @@
+version: "2.0"
+
+screen:
+  name: 채널 랭킹
+  route: /ranking
+  layout: full-width
+  auth: true
+
+data_requirements:
+  - resource: channels
+    needs: [id, name, trust_score, thumbnail_url, category, total_checks]
+    filters: { category: "?category", sort: "trust_score:desc" }
+
+  - resource: channel_tags
+    needs: [tag_name]
+
+components:
+  - id: category_tabs
+    type: tabs
+    position: main
+    function: 카테고리 탭 (정치/경제/사회/국제)
+    events:
+      - on: click:tab
+        do: 선택한 카테고리로 필터링, URL 업데이트
+
+  - id: tag_filter
+    type: filter-form
+    position: main
+    function: 사용자 지정 태그 필터
+    data_source:
+      resource: channel_tags
+    events:
+      - on: select:tag
+        do: 태그 기반 필터링 적용
+
+  - id: ranking_list
+    type: list
+    position: main
+    function: 채널 랭킹 목록 (순위, 썸네일, 채널명, 점수, 변화량)
+    data_source:
+      resource: channels
+    events:
+      - on: click:channel
+        do: 채널 상세(/channels/:id)로 이동
+
+connections:
+  navigations:
+    - from: ranking_list
+      to: /channels/:id
+  shared_components:
+    - bottom_nav
+
+tests:
+  - name: 초기 로드
+    when: 랭킹 페이지 접속
+    then:
+      - 전체 카테고리 랭킹 표시
+      - 카테고리 탭 표시
+
+  - name: 카테고리 필터링
+    when: "경제" 탭 클릭
+    then:
+      - 경제 카테고리 채널만 표시
+      - URL에 ?category=economy 반영
+
+  - name: 채널 상세 이동
+    when: 랭킹 목록에서 채널 클릭
+    then:
+      - 채널 상세(/channels/:id)로 이동

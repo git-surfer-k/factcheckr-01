@@ -1,0 +1,42 @@
+version: "2.0"
+
+screen:
+  name: B2B 로그인/회원가입
+  route: /login
+  layout: full-width
+  auth: false
+  roles: [b2b]
+
+data_requirements:
+  - resource: users
+    needs: [email, name, user_type]
+
+components:
+  - id: b2b_auth_form
+    type: form
+    position: main
+    function: 기업 계정 로그인 (이메일 + OTP) 및 회원가입 (기업명, 담당자, 이메일)
+    events:
+      - on: submit:login
+        do: OTP 발송 후 인증, 대시보드(/dashboard)로 이동
+      - on: submit:register
+        do: 기업 회원가입 처리 후 대시보드로 이동
+
+connections:
+  navigations:
+    - from: b2b_auth_form
+      to: /dashboard
+  external:
+    - authentication_zero
+
+tests:
+  - name: 기업 로그인
+    when: 이메일 + OTP 인증 완료
+    then:
+      - 대시보드(/dashboard)로 이동
+
+  - name: 기업 회원가입
+    when: 기업정보 입력 후 가입 완료
+    then:
+      - 계정 생성
+      - 대시보드로 이동

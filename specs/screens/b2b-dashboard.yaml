@@ -1,0 +1,75 @@
+version: "2.0"
+
+screen:
+  name: B2B 대시보드
+  route: /dashboard
+  layout: dashboard
+  auth: true
+  roles: [b2b]
+
+data_requirements:
+  - resource: b2b_reports
+    needs: [id, company_name, status, created_at, completed_at]
+    filters: { user_id: "current_user", sort: "created_at:desc" }
+
+  - resource: subscriptions
+    needs: [plan_type, status, expires_at]
+    auth_required: true
+
+components:
+  - id: sidebar_nav
+    type: navigation
+    position: sidebar
+    function: 사이드 메뉴 (대시보드/새 리포트/결제관리)
+    events:
+      - on: click:menu
+        do: 선택한 메뉴 화면으로 이동
+
+  - id: subscription_card
+    type: stat-card
+    position: main
+    function: 구독 상태 카드 (플랜, 만료일)
+    data_source:
+      resource: subscriptions
+
+  - id: recent_reports
+    type: list
+    position: main
+    function: 최근 생성 리포트 목록
+    data_source:
+      resource: b2b_reports
+    events:
+      - on: click:report
+        do: 리포트 상세(/reports/:id)로 이동
+
+  - id: new_report_button
+    type: button
+    position: main
+    function: "새 리포트 요청" 버튼
+    events:
+      - on: click
+        do: 기업정보 입력(/reports/new)으로 이동
+
+connections:
+  navigations:
+    - from: new_report_button
+      to: /reports/new
+    - from: recent_reports
+      to: /reports/:id
+
+tests:
+  - name: 대시보드 로드
+    when: 대시보드 접속
+    then:
+      - 구독 상태 표시
+      - 최근 리포트 목록 표시
+
+  - name: 새 리포트 요청
+    when: "새 리포트 요청" 버튼 클릭
+    then:
+      - /reports/new로 이동
+
+  - name: 리포트 상세 이동
+    when: 리포트 목록 항목 클릭
+    then:
+      - 해당 리포트 상세로 이동

@@ -1,0 +1,107 @@
+# 도메인 리소스 정의
+# Factis — 유튜브 팩트체크 플랫폼
+
+resources:
+  users:
+    fields:
+      id: { type: uuid }
+      email: { type: string }
+      name: { type: string }
+      user_type: { type: enum, values: [b2c, b2b] }
+      created_at: { type: timestamp }
+
+  fact_checks:
+    fields:
+      id: { type: uuid }
+      user_id: { type: uuid, ref: users }
+      channel_id: { type: uuid, ref: channels }
+      youtube_video_id: { type: string }
+      youtube_url: { type: string }
+      video_title: { type: string }
+      video_thumbnail: { type: string }
+      transcript: { type: text }
+      summary: { type: text }
+      overall_score: { type: decimal }
+      analysis_detail: { type: jsonb }
+      status: { type: enum, values: [pending, analyzing, completed, failed] }
+      created_at: { type: timestamp }
+      completed_at: { type: timestamp }
+
+  claims:
+    fields:
+      id: { type: uuid }
+      fact_check_id: { type: uuid, ref: fact_checks }
+      claim_text: { type: text }
+      verdict: { type: enum, values: [true, mostly_true, half_true, mostly_false, false, unverifiable] }
+      confidence: { type: decimal }
+      explanation: { type: text }
+      timestamp_start: { type: integer }
+      timestamp_end: { type: integer }
+      embedding: { type: vector }
+      created_at: { type: timestamp }
+
+  news_sources:
+    fields:
+      id: { type: uuid }
+      claim_id: { type: uuid, ref: claims }
+      title: { type: string }
+      url: { type: string }
+      publisher: { type: string }
+      author: { type: string }
+      published_at: { type: timestamp }
+      relevance_score: { type: decimal }
+      bigkinds_doc_id: { type: string }
+
+  channels:
+    fields:
+      id: { type: uuid }
+      youtube_channel_id: { type: string }
+      name: { type: string }
+      description: { type: text }
+      subscriber_count: { type: integer }
+      category: { type: string }
+      trust_score: { type: decimal }
+      total_checks: { type: integer }
+      thumbnail_url: { type: string }
+      created_at: { type: timestamp }
+
+  channel_scores:
+    fields:
+      id: { type: uuid }
+      channel_id: { type: uuid, ref: channels }
+      score: { type: decimal }
+      accuracy_rate: { type: decimal }
+      source_citation_rate: { type: decimal }
+      consistency_score: { type: decimal }
+      recorded_at: { type: timestamp }
+
+  channel_tags:
+    fields:
+      id: { type: uuid }
+      channel_id: { type: uuid, ref: channels }
+      tag_name: { type: string }
+      created_by: { type: uuid, ref: users }
+
+  subscriptions:
+    fields:
+      id: { type: uuid }
+      user_id: { type: uuid, ref: users }
+      plan_type: { type: enum, values: [b2c_basic, b2c_premium, b2b_standard, b2b_enterprise] }
+      status: { type: enum, values: [active, canceled, expired] }
+      started_at: { type: timestamp }
+      expires_at: { type: timestamp }
+      payment_method: { type: string }
+
+  b2b_reports:
+    fields:
+      id: { type: uuid }
+      user_id: { type: uuid, ref: users }
+      company_name: { type: string }
+      industry: { type: string }
+      product_info: { type: text }
+      target_categories: { type: array }
+      recommended_channels: { type: jsonb }
+      report_data: { type: jsonb }
+      status: { type: enum, values: [pending, generating, completed] }
+      created_at: { type: timestamp }
+      completed_at: { type: timestamp }

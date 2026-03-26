@@ -1,0 +1,68 @@
+version: "2.0"
+
+screen:
+  name: 홈
+  route: /
+  layout: full-width
+  auth: true
+
+data_requirements:
+  - resource: fact_checks
+    needs: [id, video_title, video_thumbnail, overall_score, created_at]
+    filters: { user_id: "current_user", sort: "created_at:desc", limit: 10 }
+
+  - resource: channels
+    needs: [id, name, thumbnail_url]
+
+components:
+  - id: url_input
+    type: search-form
+    position: main
+    function: 유튜브 URL 입력 및 팩트체크 요청
+    events:
+      - on: submit
+        do: URL 유효성 검사 후 팩트체크 분석 요청, /analyze/:id로 이동
+
+  - id: recent_checks
+    type: list
+    position: main
+    function: 최근 팩트체크 결과 목록 표시
+    data_source:
+      resource: fact_checks
+    events:
+      - on: click:item
+        do: 해당 리포트 상세 페이지(/reports/:id)로 이동
+
+  - id: bottom_nav
+    type: navigation
+    position: footer
+    function: 하단 네비게이션 (홈/랭킹/내기록/설정)
+    events:
+      - on: click:menu
+        do: 선택한 메뉴 화면으로 이동
+
+connections:
+  navigations:
+    - from: url_input
+      to: /analyze/:id
+    - from: recent_checks
+      to: /reports/:id
+  shared_components:
+    - bottom_nav
+
+tests:
+  - name: 초기 로드
+    when: 홈 화면 접속
+    then:
+      - URL 입력창 상단에 표시
+      - 최근 팩트체크 결과 목록 표시
+
+  - name: URL 제출
+    when: 유효한 유튜브 URL 입력 후 팩트체크 버튼 클릭
+    then:
+      - 분석 로딩 화면(/analyze/:id)으로 이동
+
+  - name: 빈 목록
+    when: 팩트체크 이력이 없는 신규 사용자 접속
+    then:
+      - "아직 팩트체크한 영상이 없어요" 안내 표시

@@ -1,0 +1,78 @@
+# 공통 컴포넌트
+# Factis — 여러 화면에서 재사용되는 컴포넌트
+
+shared_components:
+  bottom_nav:
+    type: navigation
+    position: footer
+    function: B2C 하단 네비게이션 바
+    items:
+      - label: 홈
+        icon: home
+        route: /
+      - label: 랭킹
+        icon: chart
+        route: /ranking
+      - label: 내기록
+        icon: history
+        route: /history
+      - label: 설정
+        icon: settings
+        route: /settings
+    used_in:
+      - b2c-home
+      - b2c-report-detail
+      - b2c-channel-detail
+      - b2c-ranking
+      - b2c-history
+      - b2c-settings
+
+  b2b_sidebar_nav:
+    type: navigation
+    position: sidebar
+    function: B2B 사이드 네비게이션 메뉴
+    items:
+      - label: 대시보드
+        icon: dashboard
+        route: /dashboard
+      - label: 새 리포트
+        icon: add
+        route: /reports/new
+      - label: 결제 관리
+        icon: payment
+        route: /billing
+    used_in:
+      - b2b-dashboard
+      - b2b-report-new
+      - b2b-report-detail
+      - b2b-billing
+
+  score_badge:
+    type: summary-card
+    function: 팩트 점수 배지 (점수 숫자 + 판정 라벨 + Verdict Color)
+    used_in:
+      - b2c-report-detail
+      - b2c-channel-detail
+      - b2c-home
+      - b2c-history
+      - b2c-ranking
+
+  claim_card:
+    type: card
+    function: 주장 검증 카드 (주장 원문, 판정 아이콘, 확신도, 근거 뉴스 수)
+    used_in:
+      - b2c-report-detail
+
+  channel_card:
+    type: card
+    function: 채널 카드 (썸네일, 이름, 구독자 수, 신뢰도 점수, 카테고리)
+    used_in:
+      - b2c-ranking
+      - b2c-channel-detail
+
+  ai_disclaimer:
+    type: alert
+    function: "AI 검증 한계" 안내 문구 (모든 리포트에 표시)
+    used_in:
+      - b2c-report-detail
+      - b2b-report-detail

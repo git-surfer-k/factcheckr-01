@@ -1,0 +1,53 @@
+version: "2.0"
+
+screen:
+  name: 로그인/회원가입
+  route: /auth
+  layout: full-width
+  auth: false
+
+data_requirements:
+  - resource: users
+    needs: [email]
+    auth_required: false
+
+components:
+  - id: auth_form
+    type: form
+    position: main
+    function: 이메일 입력 및 OTP 인증
+    events:
+      - on: submit:email
+        do: OTP 발송 요청 (Authentication Zero)
+      - on: submit:otp
+        do: OTP 검증 후 로그인/회원가입 처리
+
+  - id: logo_banner
+    type: image
+    position: main
+    function: Factis 로고 및 서비스 소개 문구 표시
+
+connections:
+  navigations:
+    - from: auth_form
+      to: /
+  external:
+    - authentication_zero
+
+tests:
+  - name: 이메일 입력 후 OTP 발송
+    when: 이메일 입력 후 "OTP 발송" 버튼 클릭
+    then:
+      - OTP 발송 완료 메시지 표시
+      - OTP 입력 필드 활성화
+
+  - name: OTP 인증 성공
+    when: 올바른 OTP 입력 후 "인증 완료" 클릭
+    then:
+      - 홈 화면(/)으로 이동
+
+  - name: OTP 인증 실패
+    when: 잘못된 OTP 입력
+    then:
+      - 에러 메시지 표시
+      - 재입력 가능

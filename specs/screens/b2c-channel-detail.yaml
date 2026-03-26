@@ -1,0 +1,76 @@
+version: "2.0"
+
+screen:
+  name: 채널 상세
+  route: /channels/:id
+  layout: full-width
+  auth: true
+
+data_requirements:
+  - resource: channels
+    needs: [id, name, description, subscriber_count, category, trust_score, total_checks, thumbnail_url]
+    filters: { id: ":id" }
+
+  - resource: channel_scores
+    needs: [score, accuracy_rate, source_citation_rate, consistency_score, recorded_at]
+    filters: { channel_id: ":id", sort: "recorded_at:asc" }
+
+  - resource: fact_checks
+    needs: [id, video_title, overall_score, created_at]
+    filters: { channel_id: ":id", sort: "created_at:desc" }
+
+components:
+  - id: channel_header
+    type: summary-card
+    position: main
+    function: 채널 썸네일 + 이름 + 구독자 수 + 신뢰도 점수 (큰 숫자) + 변화량
+    data_source:
+      resource: channels
+
+  - id: score_trend_chart
+    type: chart
+    position: main
+    function: 신뢰도 추이 그래프 (시계열 라인 차트)
+    data_source:
+      resource: channel_scores
+
+  - id: sub_metrics
+    type: stat-card
+    position: main
+    function: 세부 지표 표시 (정확도, 출처 인용률, 논조 일관성)
+    data_source:
+      resource: channel_scores
+
+  - id: check_history
+    type: list
+    position: main
+    function: 검증 이력 목록 (최근 팩트체크된 영상)
+    data_source:
+      resource: fact_checks
+    events:
+      - on: click:item
+        do: 리포트 상세(/reports/:id)로 이동
+
+connections:
+  navigations:
+    - from: check_history
+      to: /reports/:id
+  shared_components:
+    - bottom_nav
+
+tests:
+  - name: 채널 정보 로드
+    when: 채널 상세 페이지 접속
+    then:
+      - 채널명, 점수, 구독자 수 표시
+      - 추이 그래프 표시
+
+  - name: 검증 이력 클릭
+    when: 검증 이력 항목 클릭
+    then:
+      - 해당 리포트 상세(/reports/:id)로 이동
+
+  - name: 세부 지표 표시
+    when: 페이지 로드 완료
+    then:
+      - 정확도, 출처 인용률, 논조 일관성 수치 표시

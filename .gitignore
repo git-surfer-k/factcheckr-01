@@ -1,0 +1,50 @@
+# Ruby / Rails
+/log/*
+/tmp/*
+/storage/*
+!/log/.keep
+!/tmp/.keep
+!/storage/.keep
+/public/assets
+.byebug_history
+/config/master.key
+/config/credentials/*.key
+
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Docker
+docker-compose.override.yml
+
+# Dependencies
+/vendor/bundle
+node_modules/
+
+# Worktrees
+/worktree/
+
+# Pencil design files (large binary)
+*.pen

@@ -1,0 +1,67 @@
+version: "2.0"
+
+screen:
+  name: B2B AI 추천 채널 + 심층 리포트
+  route: /reports/:id
+  layout: dashboard
+  auth: true
+  roles: [b2b]
+
+data_requirements:
+  - resource: b2b_reports
+    needs: [id, company_name, industry, product_info, target_categories, recommended_channels, report_data, status]
+    filters: { id: ":id" }
+
+  - resource: channels
+    needs: [id, name, trust_score, category, thumbnail_url, total_checks]
+
+components:
+  - id: sidebar_nav
+    type: navigation
+    position: sidebar
+    function: 사이드 메뉴
+
+  - id: recommended_channels
+    type: list
+    position: main
+    function: AI 추천 채널 리스트 (광고적합성 높은순 — 이름, 신뢰도, 적합성 점수, 카테고리)
+    data_source:
+      resource: b2b_reports
+    events:
+      - on: click:channel
+        do: 해당 채널 심층 분석 섹션 펼치기
+
+  - id: channel_analysis
+    type: detail
+    position: main
+    function: 채널별 심층 분석 (팩트체크 이력, 논조 분석, 브랜드 안전도 점수)
+    data_source:
+      resource: b2b_reports
+
+  - id: download_report
+    type: button
+    position: main
+    function: 리포트 PDF 다운로드
+    events:
+      - on: click
+        do: PDF 리포트 다운로드
+
+connections:
+  navigations: []
+
+tests:
+  - name: 리포트 로드
+    when: 리포트 상세 페이지 접속
+    then:
+      - 추천 채널 리스트 표시
+      - 기업/상품 정보 표시
+
+  - name: 채널 심층 분석
+    when: 추천 채널 항목 클릭
+    then:
+      - 해당 채널 심층 분석 섹션 펼치기
+
+  - name: PDF 다운로드
+    when: 다운로드 버튼 클릭
+    then:
+      - PDF 파일 다운로드 시작

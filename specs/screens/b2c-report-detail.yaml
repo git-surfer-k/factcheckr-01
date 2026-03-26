@@ -1,0 +1,131 @@
+version: "2.0"
+
+screen:
+  name: 리포트 상세
+  route: /reports/:id
+  layout: full-width
+  auth: true
+
+data_requirements:
+  - resource: fact_checks
+    needs: [id, video_title, youtube_url, summary, overall_score, analysis_detail, created_at]
+    filters: { id: ":id" }
+
+  - resource: claims
+    needs: [id, claim_text, verdict, confidence, explanation, timestamp_start, timestamp_end]
+    filters: { fact_check_id: ":id" }
+
+  - resource: news_sources
+    needs: [id, title, url, publisher, author, published_at, relevance_score]
+
+  - resource: channels
+    needs: [id, name, trust_score, thumbnail_url, total_checks]
+
+  - resource: subscriptions
+    needs: [plan_type, status]
+    auth_required: true
+
+components:
+  - id: report_header
+    type: summary-card
+    position: main
+    function: 영상 제목 + 채널명 + 팩트 점수 (큰 숫자) 표시
+    data_source:
+      resource: fact_checks
+
+  - id: report_tabs
+    type: tabs
+    position: main
+    function: 5개 탭 네비게이션 (콘텐츠요약 / 팩트점수+분석 / 주장검증 / 뉴스링크 / 채널정보)
+    events:
+      - on: click:tab
+        do: 해당 탭 콘텐츠 표시
+
+  - id: content_summary
+    type: detail
+    position: main
+    function: 탭1 — 영상 핵심 내용 AI 요약
+    data_source:
+      resource: fact_checks
+
+  - id: fact_score_analysis
+    type: chart
+    position: main
+    function: 탭2 — 종합 점수, 점수 산출 근거, 분석 차트
+    data_source:
+      resource: fact_checks
+
+  - id: claim_list
+    type: list
+    position: main
+    function: 탭3 — 주장별 검증 카드 (원문, 판정, 확신도, 근거 뉴스 수)
+    data_source:
+      resource: claims
+    events:
+      - on: click:news_link
+        do: 근거 뉴스 외부 링크 새 탭 열기
+
+  - id: news_links
+    type: list
+    position: main
+    function: 탭4 — 근거 뉴스 기사 목록 (제목, 언론사, 날짜, URL)
+    data_source:
+      resource: news_sources
+    events:
+      - on: click:article
+        do: 뉴스 기사 외부 링크 새 탭 열기
+
+  - id: channel_info
+    type: card
+    position: main
+    function: 탭5 — 채널 요약 (이름, 점수, 최근 팩트체크 수) + 채널 상세 이동
+    data_source:
+      resource: channels
+    events:
+      - on: click:channel
+        do: 채널 상세(/channels/:id)로 이동
+
+  - id: download_button
+    type: button
+    position: main
+    function: 리포트 다운로드 버튼 (유료/구독)
+    events:
+      - on: click
+        do: 구독 확인 후 다운로드 형식 선택 모달 열기
+
+  - id: ai_disclaimer
+    type: alert
+    position: main
+    function: "AI 검증 한계" 안내 문구 표시
+
+connections:
+  navigations:
+    - from: channel_info
+      to: /channels/:id
+    - from: download_button
+      to: download_modal
+  shared_components:
+    - bottom_nav
+
+tests:
+  - name: 리포트 로드
+    when: 리포트 상세 페이지 접속
+    then:
+      - 영상 제목, 점수 표시
+      - 기본 탭(콘텐츠 요약) 활성화
+      - AI 검증 한계 안내 표시
+
+  - name: 탭 전환
+    when: "주장별 검증" 탭 클릭
+    then:
+      - 주장별 검증 카드 목록 표시
+
+  - name: 다운로드 (구독자)
+    when: 구독 중인 사용자가 다운로드 클릭
+    then:
+      - 형식 선택 모달 표시 (PDF/MD/DOCX/HWP)
+
+  - name: 다운로드 (비구독자)
+    when: 미구독 사용자가 다운로드 클릭
+    then:
+      - 구독 안내 메시지 표시

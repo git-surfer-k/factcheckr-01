@@ -1,0 +1,67 @@
+version: "2.0"
+
+screen:
+  name: 설정
+  route: /settings
+  layout: full-width
+  auth: true
+
+data_requirements:
+  - resource: users
+    needs: [email, name]
+    auth_required: true
+
+  - resource: subscriptions
+    needs: [plan_type, status, started_at, expires_at]
+    auth_required: true
+
+components:
+  - id: profile_section
+    type: detail
+    position: main
+    function: 프로필 정보 표시 (이메일, 이름)
+    data_source:
+      resource: users
+
+  - id: subscription_section
+    type: card
+    position: main
+    function: 구독 관리 (현재 플랜, 만료일, 플랜 변경)
+    data_source:
+      resource: subscriptions
+    events:
+      - on: click:change_plan
+        do: 플랜 선택/변경 페이지 표시
+
+  - id: logout_button
+    type: button
+    position: main
+    function: 로그아웃
+    events:
+      - on: click
+        do: 세션 종료 후 로그인(/auth)으로 이동
+
+connections:
+  navigations:
+    - from: logout_button
+      to: /auth
+  shared_components:
+    - bottom_nav
+
+tests:
+  - name: 설정 로드
+    when: 설정 페이지 접속
+    then:
+      - 프로필 정보 표시
+      - 구독 상태 표시
+
+  - name: 로그아웃
+    when: 로그아웃 버튼 클릭
+    then:
+      - 세션 종료
+      - 로그인 화면(/auth)으로 이동
+
+  - name: 구독 관리
+    when: 플랜 변경 버튼 클릭
+    then:
+      - 플랜 선택 옵션 표시

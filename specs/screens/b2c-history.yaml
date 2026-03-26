@@ -1,0 +1,60 @@
+version: "2.0"
+
+screen:
+  name: 내 기록
+  route: /history
+  layout: full-width
+  auth: true
+
+data_requirements:
+  - resource: fact_checks
+    needs: [id, video_title, video_thumbnail, overall_score, created_at]
+    filters: { user_id: "current_user", sort: "created_at:desc" }
+
+  - resource: channels
+    needs: [id, name]
+
+components:
+  - id: history_list
+    type: list
+    position: main
+    function: 내가 검증한 영상 이력 목록 (썸네일, 제목, 채널명, 점수, 날짜)
+    data_source:
+      resource: fact_checks
+    events:
+      - on: click:item
+        do: 리포트 상세(/reports/:id)로 이동
+
+  - id: empty_state
+    type: alert
+    position: main
+    function: 이력 없을 때 안내 ("아직 검증한 영상이 없어요" + 홈으로 이동 버튼)
+    events:
+      - on: click:go_home
+        do: 홈(/)으로 이동
+
+connections:
+  navigations:
+    - from: history_list
+      to: /reports/:id
+    - from: empty_state
+      to: /
+  shared_components:
+    - bottom_nav
+
+tests:
+  - name: 이력 표시
+    when: 검증 이력이 있는 사용자 접속
+    then:
+      - 최신순으로 검증 이력 표시
+
+  - name: 빈 이력
+    when: 검증 이력이 없는 사용자 접속
+    then:
+      - 빈 상태 안내 표시
+      - 홈으로 이동 버튼 표시
+
+  - name: 리포트 이동
+    when: 이력 항목 클릭
+    then:
+      - 리포트 상세(/reports/:id)로 이동

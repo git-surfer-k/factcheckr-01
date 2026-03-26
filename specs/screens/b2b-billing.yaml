@@ -1,0 +1,62 @@
+version: "2.0"
+
+screen:
+  name: B2B 결제/구독 관리
+  route: /billing
+  layout: dashboard
+  auth: true
+  roles: [b2b]
+
+data_requirements:
+  - resource: subscriptions
+    needs: [id, plan_type, status, started_at, expires_at, payment_method]
+    auth_required: true
+
+components:
+  - id: sidebar_nav
+    type: navigation
+    position: sidebar
+    function: 사이드 메뉴
+
+  - id: current_plan
+    type: stat-card
+    position: main
+    function: 현재 구독 플랜 + 상태 표시
+    data_source:
+      resource: subscriptions
+
+  - id: plan_selector
+    type: card
+    position: main
+    function: 플랜 변경/선택 카드
+    events:
+      - on: click:change
+        do: 플랜 변경 처리
+
+  - id: payment_history
+    type: table
+    position: main
+    function: 결제 이력 테이블 (날짜, 금액, 상태)
+    events:
+      - on: click:invoice
+        do: 인보이스 PDF 다운로드
+
+connections:
+  navigations: []
+
+tests:
+  - name: 결제 정보 로드
+    when: 결제 관리 페이지 접속
+    then:
+      - 현재 플랜 표시
+      - 결제 이력 표시
+
+  - name: 플랜 변경
+    when: 플랜 변경 버튼 클릭
+    then:
+      - 플랜 선택 옵션 표시
+
+  - name: 인보이스 다운로드
+    when: 결제 이력에서 인보이스 클릭
+    then:
+      - PDF 인보이스 다운로드

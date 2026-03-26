@@ -1,0 +1,58 @@
+version: "2.0"
+
+screen:
+  name: 분석 로딩
+  route: /analyze/:id
+  layout: full-width
+  auth: true
+
+data_requirements:
+  - resource: fact_checks
+    needs: [id, youtube_url, video_title, video_thumbnail, status]
+    filters: { id: ":id" }
+
+components:
+  - id: analysis_progress
+    type: stepper
+    position: main
+    function: AI 분석 진행 단계 표시 (영상 다운로드 → 자막 변환 → 주장 추출 → 뉴스 대조 → 리포트 생성)
+    data_source:
+      resource: fact_checks
+    events:
+      - on: status:completed
+        do: 리포트 상세 화면(/reports/:id)으로 자동 이동
+      - on: status:failed
+        do: 에러 메시지 표시 + 재시도 버튼
+
+  - id: cancel_button
+    type: button
+    position: main
+    function: 분석 취소
+    events:
+      - on: click
+        do: 분석 취소 후 홈(/)으로 이동
+
+connections:
+  navigations:
+    - from: analysis_progress
+      to: /reports/:id
+    - from: cancel_button
+      to: /
+
+tests:
+  - name: 분석 진행 표시
+    when: 분석 시작
+    then:
+      - 5단계 진행 상태 순차 표시
+      - 예상 소요 시간 표시
+
+  - name: 분석 완료
+    when: AI 분석 완료
+    then:
+      - 리포트 상세(/reports/:id)로 자동 이동
+
+  - name: 분석 실패
+    when: 분석 중 에러 발생
+    then:
+      - 에러 메시지 표시
+      - 재시도 버튼 표시

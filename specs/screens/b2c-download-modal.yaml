@@ -1,0 +1,45 @@
+version: "2.0"
+
+screen:
+  name: 다운로드 형식 선택
+  route: /reports/:id/download
+  layout: full-width
+  auth: true
+
+data_requirements:
+  - resource: subscriptions
+    needs: [plan_type, status]
+    auth_required: true
+
+components:
+  - id: download_modal
+    type: modal
+    position: overlay
+    function: 리포트 다운로드 형식 선택 (PDF/MD/DOCX/HWP)
+    events:
+      - on: select:format
+        do: 선택한 형식으로 다운로드 시작
+      - on: click:cancel
+        do: 모달 닫기
+
+  - id: subscription_notice
+    type: alert
+    position: overlay
+    function: 미구독 시 구독 안내 + 설정 페이지 이동 링크
+
+connections:
+  navigations:
+    - from: subscription_notice
+      to: /settings
+
+tests:
+  - name: 형식 선택 후 다운로드
+    when: PDF 형식 선택 후 다운로드 클릭
+    then:
+      - PDF 파일 다운로드 시작
+
+  - name: 미구독자 안내
+    when: 미구독 사용자가 모달 진입
+    then:
+      - 구독 안내 표시
+      - 설정(구독관리) 이동 링크 표시
