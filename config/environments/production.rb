@@ -60,9 +60,8 @@ Rails.application.configure do
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "example.com" }
 
-  # Resend API를 통한 이메일 발송 (production 전용)
-  config.action_mailer.delivery_method = :resend
-  config.action_mailer.resend_settings = {}
+  # Resend 이메일 발송은 initializer에서 after_initialize로 등록됨
+  # delivery_method는 initializer에서 설정
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
   # config.action_mailer.smtp_settings = {
