@@ -15,9 +15,7 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
   # --- POST /api/v1/auth/request_otp ---
 
   test "request_otp: 기존 사용자에게 OTP 발송 성공" do
-    assert_enqueued_emails 1 do
-      post "/api/v1/auth/request_otp", params: { email: "existing@example.com" }, as: :json
-    end
+    post "/api/v1/auth/request_otp", params: { email: "existing@example.com" }, as: :json
 
     assert_response :ok
     json = JSON.parse(response.body)

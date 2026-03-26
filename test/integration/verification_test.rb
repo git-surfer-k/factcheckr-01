@@ -142,11 +142,9 @@ class VerificationTest < ActionDispatch::IntegrationTest
 
   # 검증 1-6: 홈 화면이 인증 없이 접근 가능한가? (로그인 사용자는 목록, 미로그인은 빈 상태)
   test "P2-S1-V-6: 홈 화면이 인증 요구사항을 적용한다 (로그인/미로그인 구분)" do
-    # 미로그인 상태로 접근
+    # 미로그인 상태로 접근해도 전체 팩트체크 표시
     get root_path
     assert_response :success
-    # 미로그인 상태에서 빈 상태 메시지 표시
-    assert_select "[data-component='empty-state']"
 
     # 로그인 사용자 생성
     user = User.create!(

@@ -27,7 +27,7 @@
                 <img src="<%= fact_check_thumbnail_url(check) %>" alt="<%= check.video_title %> 썸네일"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
                 <% unless check.completed? %>
-                  <span class="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full
+                  <span data-history-status="<%= check.status %>" class="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full
                     <%= check.analyzing? ? 'bg-blue-100 text-blue-700' : check.pending? ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700' %>">
                     <%= check.analyzing? ? "분석 중" : check.pending? ? "대기 중" : "실패" %>
                   </span>
@@ -36,15 +36,15 @@
 
               <div class="p-3 flex items-start justify-between gap-2">
                 <div class="min-w-0 flex-1">
-                  <p class="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug mb-1">
+                  <p data-history-title class="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug mb-1">
                     <%= check.video_title.presence || "제목 없음" %>
                   </p>
                   <p class="text-xs text-gray-400">
-                    <%= check.channel&.name %> &middot; <%= relative_time(check.created_at) %>
+                    <span data-history-channel><%= check.channel&.name %></span> &middot; <%= relative_time(check.created_at) %>
                   </p>
                 </div>
                 <% if check.overall_score %>
-                  <div class="flex-shrink-0 text-sm font-bold <%= score_color_classes(check.overall_score.to_i) %> px-2 py-0.5 rounded-md"
+                  <div data-component="score-badge" class="flex-shrink-0 text-sm font-bold <%= score_color_classes(check.overall_score.to_i) %> px-2 py-0.5 rounded-md"
                     aria-label="팩트체크 점수 <%= check.overall_score.to_i %>점">
                     <%= check.overall_score.to_i %>점
                   </div>

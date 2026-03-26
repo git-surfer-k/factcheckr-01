@@ -45,12 +45,17 @@ class HistoryPageTest < ActionDispatch::IntegrationTest
       status: :completed
     )
 
+    # 북마크 생성 (내 기록에 저장)
+    Bookmark.create!(user: @user, fact_check: @fact_check_1)
+    Bookmark.create!(user: @user, fact_check: @fact_check_2)
+
     # 세션 생성 (token은 before_create에서 자동 생성됨)
     @web_session = Session.create!(user: @user)
   end
 
   # 테스트 후 생성한 데이터를 삭제한다
   def teardown
+    Bookmark.where(user: @user).delete_all
     FactCheck.where(user: @user).delete_all
     Session.where(user: @user).delete_all
     Channel.where(id: @channel.id).delete_all
@@ -65,9 +70,9 @@ class HistoryPageTest < ActionDispatch::IntegrationTest
   # ===== 비로그인 사용자 테스트 =====
 
   # 로그인하지 않은 사용자는 홈으로 리다이렉트되어야 한다
-  test "비로그인 사용자는 홈으로 리다이렉트된다" do
+  test "비로그인 사용자는 로그인 페이지로 리다이렉트된다" do
     get history_path
-    assert_redirected_to root_path
+    assert_redirected_to auth_path
   end
 
   # ===== 기록 목록 표시 테스트 =====
@@ -174,11 +179,14 @@ class HistoryPageTest < ActionDispatch::IntegrationTest
       video_title: "분석 중 영상",
       status: :analyzing
     )
+    # 북마크도 생성해야 내 기록에 표시됨
+    bookmark = Bookmark.create!(user: @user, fact_check: analyzing_check)
 
     login_with_session(@web_session)
     get history_path
     assert_select "[data-history-status]", minimum: 1
 
+    bookmark.delete
     FactCheck.where(id: analyzing_check.id).delete_all
   end
 end
