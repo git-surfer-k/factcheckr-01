@@ -129,8 +129,8 @@
       </div>
 
     <% else %>
-      <%# ===== 데스크톱: 카드 그리드 레이아웃 ===== %>
-      <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <%# ===== 데스크톱: 3열 x 4행 카드 그리드 ===== %>
+      <div class="hidden md:grid md:grid-cols-3 gap-4">
         <% @recent_checks.each do |check| %>
           <%# 팩트체크 카드 - 클릭 시 리포트 상세 페이지로 이동 %>
           <%= link_to report_path(check.id),
@@ -232,6 +232,17 @@
           </li>
         <% end %>
       </ul>
+
+      <%# ===== 더보기 버튼 ===== %>
+      <div class="mt-8 text-center">
+        <%= link_to history_path,
+          class: "inline-flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-all" do %>
+          더보기
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        <% end %>
+      </div>
     <% end %>
   </section>
 </div>
