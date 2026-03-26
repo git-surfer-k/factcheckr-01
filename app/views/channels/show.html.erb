@@ -7,6 +7,17 @@
 <div class="min-h-screen bg-gray-50 pb-20 md:pb-8">
   <div class="max-w-4xl mx-auto px-4 pt-6 md:pt-8">
 
+    <%# ===== 뒤로가기 버튼 ===== %>
+    <button
+      onclick="history.back()"
+      class="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg mb-4 transition-all"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      이전 페이지
+    </button>
+
     <%# ===== ChannelHeader: 채널 썸네일 + 이름 + 구독자 + 신뢰도 점수 ===== %>
     <section
       data-component="channel-header"
