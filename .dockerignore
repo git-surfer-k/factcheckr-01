@@ -49,3 +49,10 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Worktree/스크린샷/디자인 파일
+/worktree/
+*.png
+*.pen
+/.claude/
+/.playwright-mcp/
