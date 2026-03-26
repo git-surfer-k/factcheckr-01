@@ -35,29 +35,28 @@ class PagesController < ActionController::Base
     end
   end
 
-  # @TASK P4-S1-T1 - 내 기록 화면 UI 구현
-  # 내 팩트체크 기록 페이지
-  # 미인증 사용자는 홈으로 리다이렉트한다.
-  # @fact_checks: 로그인 사용자의 팩트체크 기록 (최신순, 페이지당 20건)
-  # @has_next_page: 다음 페이지 존재 여부 (페이지네이션 UI에 사용)
+  # 팩트체크 기록 페이지 (더보기)
+  # 로그인 시 내 기록, 비로그인 시 전체 완료된 팩트체크 표시
+  # 페이지당 12개 (3x4 그리드), 페이지네이션
   def history
-    unless logged_in?
-      redirect_to root_path and return
+    @page = (params[:page] || 1).to_i
+    @per_page = 12
+
+    base_query = if logged_in?
+      current_web_user.fact_checks.includes(:channel)
+    else
+      FactCheck.includes(:channel).where(status: :completed)
     end
 
-    @page = (params[:page] || 1).to_i
-    @per_page = 20
-    # includes(:channel)으로 N+1 쿼리 방지 (채널명 표시에 필요)
-    all_checks = current_web_user.fact_checks
-                                 .includes(:channel)
-                                 .order(created_at: :desc)
-                                 .offset((@page - 1) * @per_page)
-                                 .limit(@per_page + 1)
-                                 .to_a
+    all_checks = base_query.order(created_at: :desc)
+                           .offset((@page - 1) * @per_page)
+                           .limit(@per_page + 1)
+                           .to_a
 
-    # 다음 페이지 존재 여부: limit+1 트릭으로 추가 쿼리 없이 확인
     @has_next_page = all_checks.length > @per_page
+    @has_prev_page = @page > 1
     @fact_checks = all_checks.first(@per_page)
+    @total_count = base_query.count
   end
 
   # 설정 페이지: 로그인 필수, 사용자 프로필 + 구독 정보 로드
