@@ -40,12 +40,24 @@ module Api
 
         # OTP 생성 및 이메일 발송
         user.generate_otp!
-        OtpMailer.send_otp(user).deliver_now
 
-        render json: {
-          message: "인증 코드가 이메일로 발송되었습니다.",
+        # 이메일 발송 시도 (실패해도 OTP 응답은 정상 반환)
+        email_sent = false
+        begin
+          OtpMailer.send_otp(user).deliver_now
+          email_sent = true
+        rescue StandardError => e
+          Rails.logger.warn "[OTP] 이메일 발송 실패 (#{e.message}), OTP를 응답에 포함합니다."
+        end
+
+        response_body = {
+          message: email_sent ? "인증 코드가 이메일로 발송되었습니다." : "인증 코드가 생성되었습니다.",
           email: user.email
         }
+        # 이메일 발송 실패 시 OTP를 응답에 포함 (도메인 등록 전 임시 조치)
+        response_body[:otp_code] = user.otp_code unless email_sent
+
+        render json: response_body
       end
 
       # POST /api/v1/auth/verify_otp
