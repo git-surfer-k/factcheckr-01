@@ -60,7 +60,17 @@ FOREIGN KEY ("user_id")
 CREATE INDEX "index_b2b_reports_on_user_id" ON "b2b_reports" ("user_id") /*application='Factis01'*/;
 CREATE TABLE IF NOT EXISTS "admin_settings" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "key" varchar NOT NULL, "value" text, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
 CREATE UNIQUE INDEX "index_admin_settings_on_key" ON "admin_settings" ("key") /*application='Factis01'*/;
+CREATE TABLE IF NOT EXISTS "bookmarks" ("id" varchar DEFAULT (hex(randomblob(16))) NOT NULL PRIMARY KEY, "user_id" varchar NOT NULL, "fact_check_id" varchar NOT NULL, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_c1ff6fa4ac"
+FOREIGN KEY ("user_id")
+  REFERENCES "users" ("id")
+, CONSTRAINT "fk_rails_464ce074ca"
+FOREIGN KEY ("fact_check_id")
+  REFERENCES "fact_checks" ("id")
+);
+CREATE INDEX "index_bookmarks_on_user_id" ON "bookmarks" ("user_id") /*application='Factis01'*/;
+CREATE UNIQUE INDEX "index_bookmarks_on_user_id_and_fact_check_id" ON "bookmarks" ("user_id", "fact_check_id") /*application='Factis01'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20240101000012'),
 ('20240101000011'),
 ('20240101000010'),
 ('20240101000009'),

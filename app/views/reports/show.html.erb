@@ -80,6 +80,52 @@
     document.addEventListener('DOMContentLoaded', function() {
       switchTab('summary');
     });
+
+    // 내 기록에 담기/삭제
+    async function toggleBookmark(factCheckId) {
+      var btn = document.getElementById('bookmark-btn');
+      var icon = document.getElementById('bookmark-icon');
+      var text = document.getElementById('bookmark-text');
+      var isBookmarked = icon.getAttribute('fill') === 'currentColor';
+
+      try {
+        var sessionToken = document.cookie.split(';').find(function(c) { return c.trim().startsWith('session_token='); });
+        if (!sessionToken) {
+          window.location.href = '/auth';
+          return;
+        }
+        var token = sessionToken.trim().split('=')[1];
+
+        if (isBookmarked) {
+          // 삭제
+          var res = await fetch('/api/v1/bookmarks/' + factCheckId, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json', 'X-Session-Token': token }
+          });
+          if (res.ok) {
+            icon.setAttribute('fill', 'none');
+            text.textContent = '내 기록에 담기';
+            btn.className = btn.className.replace(/bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100 focus:ring-yellow-400/g, 'border-gray-300 text-gray-600 hover:bg-gray-50 focus:ring-gray-400');
+          }
+        } else {
+          // 저장
+          var res = await fetch('/api/v1/bookmarks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
+            body: JSON.stringify({ fact_check_id: factCheckId })
+          });
+          if (res.ok || res.status === 201) {
+            icon.setAttribute('fill', 'currentColor');
+            text.textContent = '저장됨';
+            btn.className = btn.className.replace(/border-gray-300 text-gray-600 hover:bg-gray-50 focus:ring-gray-400/g, 'bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100 focus:ring-yellow-400');
+          } else if (res.status === 401) {
+            window.location.href = '/auth';
+          }
+        }
+      } catch(e) {
+        alert('네트워크 오류가 발생했습니다.');
+      }
+    }
   </script>
 <% end %>
 
@@ -150,8 +196,23 @@
         </div>
       </div>
 
-      <%# 다운로드 버튼 (모바일: 헤더 아래, 웹: 사이드바) %>
-      <div class="mt-4 flex justify-end">
+      <%# 버튼 영역: 내 기록 담기 + 다운로드 %>
+      <div class="mt-4 flex justify-end gap-2">
+        <%# 내 기록에 담기 버튼 %>
+        <button
+          id="bookmark-btn"
+          type="button"
+          onclick="toggleBookmark('<%= @fact_check.id %>')"
+          class="inline-flex items-center gap-2 px-4 py-2 border text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
+            <%= @bookmarked ? 'bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100 focus:ring-yellow-400' : 'border-gray-300 text-gray-600 hover:bg-gray-50 focus:ring-gray-400' %>"
+        >
+          <svg id="bookmark-icon" class="w-4 h-4" fill="<%= @bookmarked ? 'currentColor' : 'none' %>" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+          </svg>
+          <span id="bookmark-text"><%= @bookmarked ? '저장됨' : '내 기록에 담기' %></span>
+        </button>
+
+        <%# 다운로드 버튼 %>
         <button
           data-component="download-button"
           data-modal-target="download-modal"
@@ -161,7 +222,6 @@
           aria-label="리포트 다운로드"
           aria-haspopup="dialog"
         >
-          <%# 다운로드 아이콘 %>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>

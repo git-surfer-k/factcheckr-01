@@ -11,13 +11,9 @@ class PagesController < ActionController::Base
   # 레이아웃 명시 지정 (application.html.erb 사용)
   layout "application"
 
-  # 홈 페이지: 로그인 시 내 팩트체크, 비로그인 시 전체 최근 팩트체크 표시
+  # 홈 페이지: 항상 전체 최근 팩트체크를 표시
   def home
-    @recent_checks = if logged_in?
-      current_web_user.fact_checks.includes(:channel).order(created_at: :desc).limit(12)
-    else
-      FactCheck.includes(:channel).where(status: :completed).order(created_at: :desc).limit(12)
-    end
+    @recent_checks = FactCheck.includes(:channel).where(status: :completed).order(created_at: :desc).limit(12)
   end
 
   # 채널 랭킹 페이지
@@ -35,7 +31,7 @@ class PagesController < ActionController::Base
     end
   end
 
-  # 내 팩트체크 기록 페이지 — 로그인 필수
+  # 내 기록 페이지 — 저장한 리포트 목록 (로그인 필수)
   def history
     unless logged_in?
       redirect_to auth_path and return
@@ -44,9 +40,9 @@ class PagesController < ActionController::Base
     @load_count = [(params[:count] || 12).to_i, 300].min
     @per_load = 12
 
-    base_query = current_web_user.fact_checks.includes(:channel)
+    base_query = current_web_user.bookmarked_fact_checks.includes(:channel)
     @total_count = base_query.count
-    @fact_checks = base_query.order(created_at: :desc).limit(@load_count).to_a
+    @fact_checks = base_query.order("bookmarks.created_at DESC").limit(@load_count).to_a
     @has_more = @load_count < @total_count
   end
 

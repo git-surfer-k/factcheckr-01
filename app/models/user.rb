@@ -12,6 +12,8 @@ class User < ApplicationRecord
   has_many :subscriptions, dependent: :destroy
   has_many :b2b_reports, dependent: :destroy
   has_many :channel_tags, foreign_key: :created_by, dependent: :destroy
+  has_many :bookmarks, dependent: :destroy
+  has_many :bookmarked_fact_checks, through: :bookmarks, source: :fact_check
 
   enum :user_type, { b2c: 0, b2b: 1 }
 

@@ -53,6 +53,10 @@ Rails.application.routes.draw do
         resources :claims, only: [:index]
       end
 
+      # Bookmarks (내 기록 담기/삭제)
+      resources :bookmarks, only: [:create]
+      delete 'bookmarks/:id', to: 'bookmarks#destroy', as: :bookmark_destroy
+
       # Subscriptions (구독 관리)
       get 'subscriptions/current', to: 'subscriptions#current'
       resources :subscriptions, only: %i[create update destroy]
