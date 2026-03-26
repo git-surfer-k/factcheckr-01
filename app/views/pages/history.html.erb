@@ -1,7 +1,234 @@
-<%# @TASK P1-S0-T1 - 내기록 페이지 뷰 (플레이스홀더) %>
+<%# @TASK P4-S1-T1 - 내 기록 화면 UI %>
+<%# @SPEC specs/screens/b2c-history.yaml %>
+<%# 내 팩트체크 기록 목록(HistoryList)과 빈 상태(EmptyState)를 표시한다 %>
 <% content_for :title, "내 기록 — Factis" %>
 
-<div class="min-h-screen bg-gray-50 px-4 pt-6 pb-24 md:pb-8">
-  <h1 class="text-2xl font-bold text-blue-900 mb-6">내 기록</h1>
-  <p class="text-gray-400 text-sm text-center py-16">내 팩트체크 기록이 여기에 표시됩니다.</p>
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-4xl mx-auto px-4 pt-6 pb-24 md:pb-12">
+
+    <%# ===== 페이지 헤더 ===== %>
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-blue-900">내 기록</h1>
+      <span class="text-sm text-gray-400">
+        <%= current_web_user.email %>
+      </span>
+    </div>
+
+    <%# ===== HistoryList: 팩트체크 기록이 있을 때 ===== %>
+    <% if @fact_checks.any? %>
+      <section
+        data-component="history-list"
+        aria-label="내 팩트체크 기록 목록"
+      >
+
+        <%# ===== 데스크톱: 카드 그리드 레이아웃 ===== %>
+        <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <% @fact_checks.each do |check| %>
+            <%# 팩트체크 카드 — 클릭 시 리포트 상세 페이지로 이동 %>
+            <%= link_to report_path(check.id),
+              class: "bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md hover:border-blue-100 transition-all group",
+              aria: { label: "#{check.video_title.presence || '팩트체크 결과'} 보기" } do %>
+
+              <%# 썸네일 영역 %>
+              <div class="aspect-video bg-gray-100 overflow-hidden relative">
+                <% if check.video_thumbnail.present? %>
+                  <img
+                    src="<%= check.video_thumbnail %>"
+                    alt="<%= check.video_title %> 썸네일"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  >
+                <% else %>
+                  <%# 썸네일 없을 때 플레이스홀더 %>
+                  <div class="w-full h-full flex items-center justify-center">
+                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                <% end %>
+
+                <%# 분석 중 / 실패 상태 배지 (completed가 아닌 경우 표시) %>
+                <% unless check.completed? %>
+                  <span
+                    data-history-status="<%= check.status %>"
+                    class="absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full
+                      <%= check.analyzing? ? 'bg-blue-100 text-blue-700' : '' %>
+                      <%= check.pending? ? 'bg-yellow-100 text-yellow-700' : '' %>
+                      <%= check.failed? ? 'bg-red-100 text-red-700' : '' %>"
+                  >
+                    <%= check.analyzing? ? "분석 중" : check.pending? ? "대기 중" : "실패" %>
+                  </span>
+                <% end %>
+              </div>
+
+              <%# 카드 하단: 제목 + 채널명 + 점수 %>
+              <div class="p-3 flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                  <p
+                    data-history-title
+                    class="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug mb-1"
+                  >
+                    <%= check.video_title.presence || "제목 없음" %>
+                  </p>
+                  <p class="text-xs text-gray-400 flex items-center gap-1">
+                    <span data-history-channel><%= check.channel&.name %></span>
+                    <span aria-hidden="true">&middot;</span>
+                    <time datetime="<%= check.created_at.iso8601 %>">
+                      <%= relative_time(check.created_at) %>
+                    </time>
+                  </p>
+                </div>
+
+                <%# ScoreBadge 컴포넌트: 점수가 있을 때만 표시 %>
+                <% if check.overall_score %>
+                  <div
+                    data-component="score-badge"
+                    class="flex-shrink-0 text-sm font-bold <%= score_color_classes(check.overall_score.to_i) %> px-2 py-0.5 rounded-md"
+                    aria-label="팩트체크 점수 <%= check.overall_score.to_i %>점"
+                  >
+                    <%= check.overall_score.to_i %>점
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+
+        <%# ===== 모바일: 리스트 레이아웃 ===== %>
+        <ul class="md:hidden flex flex-col gap-3" role="list">
+          <% @fact_checks.each do |check| %>
+            <li>
+              <%= link_to report_path(check.id),
+                class: "bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-3 hover:border-blue-100 hover:shadow-sm transition-all",
+                aria: { label: "#{check.video_title.presence || '팩트체크 결과'} 보기" } do %>
+
+                <%# 썸네일 (작은 사이즈) %>
+                <div class="w-16 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
+                  <% if check.video_thumbnail.present? %>
+                    <img
+                      src="<%= check.video_thumbnail %>"
+                      alt=""
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                      aria-hidden="true"
+                    >
+                  <% else %>
+                    <div class="w-full h-full flex items-center justify-center">
+                      <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  <% end %>
+                </div>
+
+                <%# 텍스트 정보 %>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1 mb-0.5">
+                    <%# 비완료 상태 배지 (모바일) %>
+                    <% unless check.completed? %>
+                      <span
+                        data-history-status="<%= check.status %>"
+                        class="text-xs font-semibold px-1.5 py-0.5 rounded
+                          <%= check.analyzing? ? 'bg-blue-100 text-blue-700' : '' %>
+                          <%= check.pending? ? 'bg-yellow-100 text-yellow-700' : '' %>
+                          <%= check.failed? ? 'bg-red-100 text-red-700' : '' %>"
+                      >
+                        <%= check.analyzing? ? "분석 중" : check.pending? ? "대기 중" : "실패" %>
+                      </span>
+                    <% end %>
+                  </div>
+                  <p
+                    data-history-title
+                    class="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug"
+                  >
+                    <%= check.video_title.presence || "제목 없음" %>
+                  </p>
+                  <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                    <span data-history-channel><%= check.channel&.name %></span>
+                    <span aria-hidden="true">&middot;</span>
+                    <time datetime="<%= check.created_at.iso8601 %>">
+                      <%= relative_time(check.created_at) %>
+                    </time>
+                  </p>
+                </div>
+
+                <%# ScoreBadge 컴포넌트 (모바일: 원형) %>
+                <% if check.overall_score %>
+                  <div
+                    data-component="score-badge"
+                    class="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold <%= score_color_classes(check.overall_score.to_i) %>"
+                    aria-label="점수 <%= check.overall_score.to_i %>점"
+                  >
+                    <%= check.overall_score.to_i %>
+                  </div>
+                <% end %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+
+        <%# ===== 페이지네이션 ===== %>
+        <% if @page > 1 || @has_next_page %>
+          <div class="flex items-center justify-center gap-3 mt-8" aria-label="페이지 이동">
+            <%# 이전 페이지 버튼 %>
+            <% if @page > 1 %>
+              <%= link_to history_path(page: @page - 1),
+                class: "px-4 py-2 text-sm font-medium text-blue-800 bg-white border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors",
+                aria: { label: "이전 페이지" } do %>
+                &larr; 이전
+              <% end %>
+            <% end %>
+
+            <%# 현재 페이지 표시 %>
+            <span class="text-sm text-gray-500"><%= @page %>페이지</span>
+
+            <%# 다음 페이지 버튼 %>
+            <% if @has_next_page %>
+              <%= link_to history_path(page: @page + 1),
+                class: "px-4 py-2 text-sm font-medium text-blue-800 bg-white border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors",
+                aria: { label: "다음 페이지" } do %>
+                다음 &rarr;
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+
+      </section>
+
+    <%# ===== EmptyState: 기록이 없을 때 ===== %>
+    <% else %>
+      <div
+        data-component="history-empty"
+        class="flex flex-col items-center justify-center py-20 text-center"
+        aria-label="팩트체크 기록 없음"
+      >
+        <%# 일러스트 아이콘 %>
+        <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-5">
+          <svg class="w-10 h-10 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+
+        <p class="text-gray-700 font-semibold text-base mb-1">
+          아직 팩트체크 기록이 없습니다
+        </p>
+        <p class="text-gray-400 text-sm mb-6">
+          유튜브 영상 URL을 입력해 첫 팩트체크를 시작해보세요
+        </p>
+
+        <%# 홈으로 이동 CTA 버튼 %>
+        <%= link_to root_path,
+          class: "inline-flex items-center gap-2 bg-blue-800 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-blue-900 active:bg-blue-950 transition-colors",
+          aria: { label: "홈으로 이동해서 팩트체크 시작하기" } do %>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          첫 팩트체크 시작하기
+        <% end %>
+      </div>
+    <% end %>
+
+  </div>
 </div>
