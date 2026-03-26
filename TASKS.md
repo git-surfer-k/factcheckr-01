@@ -422,7 +422,7 @@ flowchart TD
 
 ### P4-S1: 내 기록 화면
 
-#### [ ] P4-S1-T1: 내 기록 화면 UI 구현
+#### [x] P4-S1-T1: 내 기록 화면 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /history (b2c-history.yaml)
 - **컴포넌트**: HistoryList (list), EmptyState (alert)
@@ -435,7 +435,7 @@ flowchart TD
 
 ### P4-S2: 설정 화면
 
-#### [ ] P4-S2-T1: 설정 화면 UI 구현
+#### [x] P4-S2-T1: 설정 화면 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /settings (b2c-settings.yaml)
 - **컴포넌트**: ProfileSection (detail), SubscriptionSection (card), LogoutButton
