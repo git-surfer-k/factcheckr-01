@@ -1,16 +1,15 @@
 /* @TASK P1-S0-T1 - 공통 레이아웃 스타일 */
 /* Tailwind CSS v4 - CSS-first configuration */
-/* No tailwind.config.js needed */
 
 @import "tailwindcss";
 
-/* Custom theme configuration using CSS */
+/* 커스텀 테마 설정 */
 @theme {
   /* Pretendard 폰트 (한글 최적화) + Inter (영문) */
   --font-family-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif, "Apple Color Emoji";
   --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
 
-  /* Custom colors example */
+  /* Trust Blue 컬러 팔레트 */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
   --color-primary-200: #bfdbfe;
@@ -23,19 +22,19 @@
   --color-primary-900: #1e3a8a;
 }
 
-/* Custom utility classes */
+/* 커스텀 유틸리티 클래스 */
 @utility container-narrow {
   max-width: 48rem;
   margin-inline: auto;
   padding-inline: 1rem;
 }
 
-/* iOS 하단 Safe Area 지원 (홈 인디케이터 영역 보호) */
+/* iOS 하단 Safe Area 지원 */
 @utility safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-/* Form styles for authentication */
+/* 컴포넌트 스타일 — Tailwind v4에서는 자기 참조(@apply btn) 불가하므로 직접 작성 */
 @layer components {
   .form-input {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
@@ -46,15 +45,15 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    @apply px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
   }
 
   .btn-secondary {
-    @apply btn bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-500;
+    @apply px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-500;
   }
 
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+    @apply px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
   }
 
   .alert {
@@ -62,10 +61,10 @@
   }
 
   .alert-error {
-    @apply alert bg-red-50 text-red-700 border border-red-200;
+    @apply p-4 rounded-md mb-4 bg-red-50 text-red-700 border border-red-200;
   }
 
   .alert-success {
-    @apply alert bg-green-50 text-green-700 border border-green-200;
+    @apply p-4 rounded-md mb-4 bg-green-50 text-green-700 border border-green-200;
   }
 }
