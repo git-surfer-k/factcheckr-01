@@ -43,8 +43,8 @@
       </div>
     <% end %>
 
-    <% if content_for?(:skip_sidebar) %>
-      <%# 로그인 페이지: 사이드바 없는 전체 화면 %>
+    <% if !session[:admin] %>
+      <%# 비인증 상태 (로그인 페이지): 사이드바 없는 전체 화면 %>
       <main role="main">
         <%= yield %>
       </main>
