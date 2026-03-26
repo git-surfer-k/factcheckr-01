@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   get "/ranking",        to: "pages#ranking",  as: :ranking
   get "/history",        to: "pages#history",  as: :history
   get "/settings",       to: "pages#settings", as: :settings
+  get "/auth",            to: "pages#auth",     as: :auth
   get "/analyze/:id",    to: "pages#analyze",  as: :analyze
   get "/reports/:id",    to: "reports#show",   as: :report
   # @TASK P3-S1-T1 - 채널 상세 웹 라우트

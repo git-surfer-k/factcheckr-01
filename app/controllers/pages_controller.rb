@@ -64,12 +64,18 @@ class PagesController < ActionController::Base
   def settings
     # 비로그인 시 인증 페이지로 리다이렉트
     unless logged_in?
-      redirect_to "/auth"
+      redirect_to auth_path
       return
     end
 
     # 현재 활성 구독 조회 (없으면 nil)
     @current_subscription = current_web_user.subscriptions.active.order(created_at: :desc).first
+  end
+
+  # 로그인/회원가입 페이지 (Email OTP)
+  def auth
+    # 이미 로그인한 사용자는 홈으로 리다이렉트
+    redirect_to root_path and return if logged_in?
   end
 
   # 팩트체크 분석 중 페이지: /analyze/:id
