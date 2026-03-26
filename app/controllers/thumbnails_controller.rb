@@ -1,34 +1,44 @@
 # frozen_string_literal: true
 
-# 팩트체크 결과의 동적 SVG 썸네일을 생성하는 컨트롤러
-# 카테고리별 그라디언트 배경 + 채널명 + 주제 텍스트를 표시한다.
+# 팩트체크 대상 영상의 유튜브 썸네일을 시뮬레이션하는 컨트롤러
+# 각 채널의 고유한 디자인 아이덴티티를 반영하여 실제 유튜브 썸네일처럼 보이도록 한다.
 class ThumbnailsController < ActionController::Base
-  # 카테고리별 그라디언트 색상 (시작, 끝)
-  CATEGORY_COLORS = {
-    "정치" => { from: "#1e3a8a", to: "#3b82f6", icon: "M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74 1.1-7.843 2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" },
-    "경제" => { from: "#065f46", to: "#10b981", icon: "M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 014.5 15h.75m-1.5 0v.75" },
-    "사회" => { from: "#581c87", to: "#a855f7", icon: "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" },
-    "국제" => { from: "#9a3412", to: "#f97316", icon: "M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74 1.1-7.843 2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" },
-  }.freeze
-
-  # 주제별 아이콘 (키워드 매칭)
-  TOPIC_ICONS = {
-    "예산" => "M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 014.5 15h.75m-1.5 0v.75",
-    "여론" => "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z",
-    "법안" => "M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25",
-    "GDP" => "M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941",
-    "금리" => "M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    "물가" => "M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z",
-    "반도체" => "M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 004.5 8.25v9a2.25 2.25 0 002.25 2.25z",
-    "실업" => "M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0",
-    "출생" => "M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z",
-    "의대" => "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z",
-    "AI" => "M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 004.5 8.25v9a2.25 2.25 0 002.25 2.25z",
-    "폭력" => "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
-    "기후" => "M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z",
-    "무역" => "M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0H6.375c-.621 0-1.125-.504-1.125-1.125V14.25m17.25 0V5.625c0-.621-.504-1.125-1.125-1.125H5.25c-.621 0-1.125.504-1.125 1.125v8.625M2.25 14.25h19.5",
-    "전쟁" => "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z",
-    "규제" => "M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z",
+  # 채널별 고유 스타일 — 실제 유튜브 채널처럼 각자 다른 디자인
+  CHANNEL_STYLES = {
+    # 정치 채널
+    "팩트뉴스TV" =>    { bg: "#0f172a", accent: "#3b82f6", text_color: "#ffffff", badge: "FACT", badge_bg: "#2563eb", style: :news },
+    "정치비평" =>      { bg: "#1a0000", accent: "#ef4444", text_color: "#ffffff", badge: "단독", badge_bg: "#dc2626", style: :dramatic },
+    "국회워치" =>      { bg: "#0c0c2e", accent: "#6366f1", text_color: "#e2e8f0", badge: "LIVE", badge_bg: "#4f46e5", style: :news },
+    "대한민국정치" =>   { bg: "#000000", accent: "#f59e0b", text_color: "#fbbf24", badge: "긴급", badge_bg: "#b91c1c", style: :clickbait },
+    "정책연구소" =>    { bg: "#1e293b", accent: "#94a3b8", text_color: "#f1f5f9", badge: "분석", badge_bg: "#475569", style: :academic },
+    "선거전략가" =>    { bg: "#172554", accent: "#60a5fa", text_color: "#dbeafe", badge: "전략", badge_bg: "#1d4ed8", style: :chart },
+    "뉴스종합" =>      { bg: "#111827", accent: "#f43f5e", text_color: "#ffffff", badge: "속보", badge_bg: "#e11d48", style: :news },
+    "자유언론" =>      { bg: "#000000", accent: "#ef4444", text_color: "#fca5a5", badge: "충격", badge_bg: "#991b1b", style: :clickbait },
+    # 경제 채널
+    "경제돋보기" =>    { bg: "#022c22", accent: "#10b981", text_color: "#d1fae5", badge: "지표", badge_bg: "#047857", style: :chart },
+    "부동산의신" =>    { bg: "#1c1917", accent: "#f59e0b", text_color: "#fef3c7", badge: "폭등?!", badge_bg: "#d97706", style: :clickbait },
+    "주식마스터" =>    { bg: "#0c0a09", accent: "#22c55e", text_color: "#bbf7d0", badge: "종목", badge_bg: "#15803d", style: :chart },
+    "글로벌경제" =>    { bg: "#0f172a", accent: "#0ea5e9", text_color: "#e0f2fe", badge: "글로벌", badge_bg: "#0369a1", style: :news },
+    "서민경제TV" =>    { bg: "#1c1917", accent: "#fb923c", text_color: "#fff7ed", badge: "생활", badge_bg: "#c2410c", style: :friendly },
+    "코인분석가" =>    { bg: "#000000", accent: "#a855f7", text_color: "#e9d5ff", badge: "급등", badge_bg: "#7c3aed", style: :clickbait },
+    # 사회 채널
+    "사회탐사" =>      { bg: "#1e1b4b", accent: "#818cf8", text_color: "#e0e7ff", badge: "탐사", badge_bg: "#4338ca", style: :documentary },
+    "교육현장" =>      { bg: "#1e3a5f", accent: "#38bdf8", text_color: "#e0f2fe", badge: "교육", badge_bg: "#0284c7", style: :friendly },
+    "환경지킴이" =>    { bg: "#052e16", accent: "#4ade80", text_color: "#dcfce7", badge: "환경", badge_bg: "#15803d", style: :documentary },
+    "범죄실록" =>      { bg: "#0a0a0a", accent: "#f87171", text_color: "#fecaca", badge: "실화", badge_bg: "#991b1b", style: :dramatic },
+    "의료진실" =>      { bg: "#1a0a2e", accent: "#c084fc", text_color: "#f3e8ff", badge: "건강", badge_bg: "#7e22ce", style: :clickbait },
+    "복지뉴스" =>      { bg: "#1e3a5f", accent: "#67e8f9", text_color: "#cffafe", badge: "복지", badge_bg: "#0e7490", style: :friendly },
+    "이슈분석가" =>    { bg: "#18181b", accent: "#fbbf24", text_color: "#fef9c3", badge: "이슈", badge_bg: "#a16207", style: :chart },
+    "가짜뉴스헌터" =>  { bg: "#14532d", accent: "#22c55e", text_color: "#ffffff", badge: "검증", badge_bg: "#16a34a", style: :news },
+    "과학기술TV" =>    { bg: "#0c0a09", accent: "#06b6d4", text_color: "#cffafe", badge: "TECH", badge_bg: "#0891b2", style: :academic },
+    "시민기자단" =>    { bg: "#292524", accent: "#f97316", text_color: "#fff7ed", badge: "제보", badge_bg: "#c2410c", style: :friendly },
+    # 국제 채널
+    "세계뉴스24" =>    { bg: "#0c0f33", accent: "#f43f5e", text_color: "#ffffff", badge: "WORLD", badge_bg: "#be123c", style: :news },
+    "미국통신" =>      { bg: "#1e293b", accent: "#3b82f6", text_color: "#dbeafe", badge: "US", badge_bg: "#1d4ed8", style: :news },
+    "동아시아포커스" => { bg: "#0f172a", accent: "#f59e0b", text_color: "#fef3c7", badge: "동아시아", badge_bg: "#b45309", style: :documentary },
+    "중동리포트" =>    { bg: "#1c1917", accent: "#ef4444", text_color: "#fee2e2", badge: "중동", badge_bg: "#b91c1c", style: :dramatic },
+    "유럽브리핑" =>    { bg: "#0f172a", accent: "#6366f1", text_color: "#e0e7ff", badge: "EU", badge_bg: "#4338ca", style: :news },
+    "글로벌위기" =>    { bg: "#000000", accent: "#ef4444", text_color: "#fca5a5", badge: "위기", badge_bg: "#7f1d1d", style: :clickbait },
   }.freeze
 
   def show
@@ -36,78 +46,17 @@ class ThumbnailsController < ActionController::Base
     return head(:not_found) unless fact_check
 
     channel = fact_check.channel
-    category = channel&.category || "사회"
-    colors = CATEGORY_COLORS[category] || CATEGORY_COLORS["사회"]
-    title = fact_check.video_title || "팩트체크"
     channel_name = channel&.name || "알 수 없음"
-    score = fact_check.overall_score&.to_i || 0
+    style = CHANNEL_STYLES[channel_name] || { bg: "#1e293b", accent: "#64748b", text_color: "#f1f5f9", badge: "뉴스", badge_bg: "#475569", style: :news }
 
-    # 주제에 맞는 아이콘 선택
-    topic_icon = TOPIC_ICONS.find { |k, _| title.include?(k) }&.last || CATEGORY_COLORS[category][:icon]
+    title = fact_check.video_title || "팩트체크"
+    # "채널명 — 주제" 형식에서 주제만 추출
+    topic = title.include?("—") ? title.split("—", 2).last.strip : title
 
-    # 점수 색상
-    score_color = if score >= 80 then "#16a34a"
-                  elsif score >= 60 then "#059669"
-                  elsif score >= 40 then "#ca8a04"
-                  elsif score >= 20 then "#ea580c"
-                  else "#dc2626"
-                  end
+    # 주제를 유튜브 썸네일 스타일의 짧은 문구로 변환
+    headline = build_headline(topic, style[:style])
 
-    # 제목을 2줄로 분리 (최대 14자씩)
-    title_short = title.gsub(/\s*—\s*/, "\n")
-    lines = title_short.split("\n")
-    line1 = lines[0]&.slice(0, 16) || ""
-    line2 = lines[1]&.slice(0, 18) || ""
-
-    svg = <<~SVG
-      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
-        <defs>
-          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#{colors[:from]};stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#{colors[:to]};stop-opacity:1" />
-          </linearGradient>
-          <linearGradient id="overlay" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#000;stop-opacity:0" />
-            <stop offset="100%" style="stop-color:#000;stop-opacity:0.4" />
-          </linearGradient>
-        </defs>
-
-        <!-- 배경 그라디언트 -->
-        <rect width="640" height="360" fill="url(#bg)" rx="0"/>
-        <rect width="640" height="360" fill="url(#overlay)" rx="0"/>
-
-        <!-- 장식 원 (배경) -->
-        <circle cx="520" cy="80" r="120" fill="white" opacity="0.06"/>
-        <circle cx="560" cy="120" r="80" fill="white" opacity="0.04"/>
-        <circle cx="100" cy="300" r="60" fill="white" opacity="0.05"/>
-
-        <!-- 카테고리 배지 -->
-        <rect x="32" y="28" width="52" height="26" rx="13" fill="white" opacity="0.2"/>
-        <text x="58" y="46" text-anchor="middle" fill="white" font-family="sans-serif" font-size="13" font-weight="600">#{category}</text>
-
-        <!-- Factis 로고 -->
-        <text x="608" y="46" text-anchor="end" fill="white" opacity="0.5" font-family="sans-serif" font-size="12" font-weight="700" letter-spacing="1">FACTIS</text>
-
-        <!-- 주제 아이콘 (중앙 상단) -->
-        <g transform="translate(280, 60) scale(3)" stroke="white" stroke-width="1.2" fill="none" opacity="0.15" stroke-linecap="round" stroke-linejoin="round">
-          <path d="#{topic_icon}"/>
-        </g>
-
-        <!-- 채널명 -->
-        <text x="32" y="230" fill="white" opacity="0.8" font-family="sans-serif" font-size="16" font-weight="500">#{escape_xml(channel_name)}</text>
-
-        <!-- 제목 (2줄) -->
-        <text x="32" y="270" fill="white" font-family="sans-serif" font-size="28" font-weight="800" letter-spacing="-0.5">#{escape_xml(line1)}</text>
-        <text x="32" y="305" fill="white" font-family="sans-serif" font-size="28" font-weight="800" letter-spacing="-0.5">#{escape_xml(line2)}</text>
-
-        <!-- 점수 배지 -->
-        <rect x="540" y="290" width="72" height="40" rx="20" fill="#{score_color}"/>
-        <text x="576" y="316" text-anchor="middle" fill="white" font-family="sans-serif" font-size="18" font-weight="800">#{score}점</text>
-
-        <!-- 하단 FACT CHECK 텍스트 -->
-        <text x="32" y="345" fill="white" opacity="0.35" font-family="sans-serif" font-size="11" font-weight="600" letter-spacing="2">FACT CHECK REPORT</text>
-      </svg>
-    SVG
+    svg = send(:"render_#{style[:style]}", style, channel_name, headline, topic)
 
     response.headers["Cache-Control"] = "public, max-age=86400"
     render inline: svg, content_type: "image/svg+xml"
@@ -115,7 +64,244 @@ class ThumbnailsController < ActionController::Base
 
   private
 
-  def escape_xml(text)
+  # 스타일별 헤드라인 생성 — 채널 성격에 맞는 제목 표현
+  def build_headline(topic, style_type)
+    case style_type
+    when :clickbait
+      # 자극적 — 느낌표, 물음표, 강조
+      "#{topic}..#{['충격', '논란', '실화?!', '결국..'].sample}"
+    when :dramatic
+      # 긴장감 — 따옴표, 말줄임
+      "\"#{topic}\" 의 진실"
+    when :academic
+      # 학술적 — 콜론, 분석
+      "#{topic}: 심층분석"
+    when :chart
+      # 데이터 — 숫자 강조
+      "#{topic} 완전정리"
+    when :documentary
+      # 다큐 — 르포 느낌
+      "[르포] #{topic}"
+    when :friendly
+      # 친근 — 쉬운 말
+      "#{topic}, 알기 쉽게!"
+    else
+      topic
+    end
+  end
+
+  # --- 뉴스 스타일: 깔끔한 뉴스 채널 느낌 ---
+  def render_news(s, ch, headline, _topic)
+    lines = split_headline(headline, 10)
+    <<~SVG
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+        <rect width="640" height="360" fill="#{s[:bg]}"/>
+        <!-- 하단 악센트 바 -->
+        <rect y="320" width="640" height="40" fill="#{s[:accent]}"/>
+        <!-- 상단 얇은 라인 -->
+        <rect width="640" height="4" fill="#{s[:accent]}"/>
+        <!-- 배경 패턴: 도트 그리드 -->
+        #{dot_grid(s[:accent], 0.06)}
+        <!-- 채널명 좌상단 -->
+        <rect x="20" y="20" width="#{ch.length * 16 + 24}" height="32" rx="4" fill="#{s[:accent]}"/>
+        <text x="32" y="42" fill="white" font-family="sans-serif" font-size="15" font-weight="800">#{esc(ch)}</text>
+        <!-- 배지 -->
+        <rect x="#{640 - 20 - s[:badge].length * 14 - 16}" y="20" width="#{s[:badge].length * 14 + 16}" height="28" rx="4" fill="#{s[:badge_bg]}"/>
+        <text x="#{640 - 20 - s[:badge].length * 7}" y="40" text-anchor="middle" fill="white" font-family="sans-serif" font-size="13" font-weight="700">#{esc(s[:badge])}</text>
+        <!-- 메인 헤드라인 (중앙) -->
+        <text x="320" y="#{lines.size == 1 ? 195 : 170}" text-anchor="middle" fill="#{s[:text_color]}" font-family="sans-serif" font-size="42" font-weight="900" letter-spacing="-1">#{esc(lines[0])}</text>
+        #{lines[1] ? "<text x=\"320\" y=\"225\" text-anchor=\"middle\" fill=\"#{s[:text_color]}\" font-family=\"sans-serif\" font-size=\"42\" font-weight=\"900\" letter-spacing=\"-1\">#{esc(lines[1])}</text>" : ""}
+        <!-- 하단 바 텍스트 -->
+        <text x="320" y="347" text-anchor="middle" fill="white" font-family="sans-serif" font-size="14" font-weight="600">#{esc(ch)} | BREAKING NEWS</text>
+      </svg>
+    SVG
+  end
+
+  # --- 자극적 스타일: 빨간 화살표, 느낌표, 클릭베이트 ---
+  def render_clickbait(s, ch, headline, _topic)
+    lines = split_headline(headline, 9)
+    <<~SVG
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+        <rect width="640" height="360" fill="#{s[:bg]}"/>
+        <!-- 대각선 줄무늬 배경 -->
+        <defs><pattern id="stripes" patternUnits="userSpaceOnUse" width="20" height="20" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="20" stroke="#{s[:accent]}" stroke-width="2" opacity="0.08"/>
+        </pattern></defs>
+        <rect width="640" height="360" fill="url(#stripes)"/>
+        <!-- 큰 느낌표/물음표 배경 장식 -->
+        <text x="500" y="300" fill="#{s[:accent]}" opacity="0.1" font-family="sans-serif" font-size="280" font-weight="900">?!</text>
+        <!-- 빨간 배지 (좌상단) -->
+        <rect x="16" y="16" width="#{s[:badge].length * 18 + 20}" height="36" rx="4" fill="#{s[:badge_bg]}"/>
+        <text x="26" y="41" fill="white" font-family="sans-serif" font-size="18" font-weight="900">#{esc(s[:badge])}</text>
+        <!-- 메인 텍스트 (크고 굵게, 노란색/빨간색 강조) -->
+        <text x="30" y="#{lines.size == 1 ? 210 : 180}" fill="#{s[:text_color]}" font-family="sans-serif" font-size="48" font-weight="900" letter-spacing="-1">#{esc(lines[0])}</text>
+        #{lines[1] ? "<text x=\"30\" y=\"240\" fill=\"#{s[:accent]}\" font-family=\"sans-serif\" font-size=\"48\" font-weight=\"900\" letter-spacing=\"-1\">#{esc(lines[1])}</text>" : ""}
+        <!-- 채널명 (우하단) -->
+        <rect x="#{640 - ch.length * 14 - 32}" y="310" width="#{ch.length * 14 + 20}" height="30" rx="15" fill="#{s[:accent]}" opacity="0.8"/>
+        <text x="#{640 - ch.length * 7 - 22}" y="331" text-anchor="middle" fill="white" font-family="sans-serif" font-size="13" font-weight="700">#{esc(ch)}</text>
+      </svg>
+    SVG
+  end
+
+  # --- 극적 스타일: 어두운 배경, 따옴표, 긴장감 ---
+  def render_dramatic(s, ch, headline, _topic)
+    lines = split_headline(headline, 11)
+    <<~SVG
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+        <defs>
+          <radialGradient id="spot" cx="50%" cy="40%"><stop offset="0%" stop-color="#{s[:accent]}" stop-opacity="0.15"/><stop offset="100%" stop-color="#{s[:bg]}" stop-opacity="1"/></radialGradient>
+        </defs>
+        <rect width="640" height="360" fill="#{s[:bg]}"/>
+        <rect width="640" height="360" fill="url(#spot)"/>
+        <!-- 큰 따옴표 장식 -->
+        <text x="40" y="120" fill="#{s[:accent]}" opacity="0.2" font-family="serif" font-size="160" font-weight="900">"</text>
+        <!-- 배지 -->
+        <rect x="20" y="20" width="#{s[:badge].length * 16 + 20}" height="30" rx="3" fill="#{s[:badge_bg]}"/>
+        <text x="30" y="41" fill="white" font-family="sans-serif" font-size="14" font-weight="800">#{esc(s[:badge])}</text>
+        <!-- 메인 텍스트 -->
+        <text x="50" y="#{lines.size == 1 ? 210 : 185}" fill="#{s[:text_color]}" font-family="sans-serif" font-size="38" font-weight="800">#{esc(lines[0])}</text>
+        #{lines[1] ? "<text x=\"50\" y=\"235\" fill=\"#{s[:text_color]}\" font-family=\"sans-serif\" font-size=\"38\" font-weight=\"800\">#{esc(lines[1])}</text>" : ""}
+        <!-- 하단 구분선 + 채널명 -->
+        <line x1="50" y1="290" x2="200" y2="290" stroke="#{s[:accent]}" stroke-width="3"/>
+        <text x="50" y="320" fill="#{s[:accent]}" font-family="sans-serif" font-size="16" font-weight="700">#{esc(ch)}</text>
+      </svg>
+    SVG
+  end
+
+  # --- 학술 스타일: 깔끔, 데이터 중심 ---
+  def render_academic(s, ch, headline, _topic)
+    lines = split_headline(headline, 12)
+    <<~SVG
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+        <rect width="640" height="360" fill="#{s[:bg]}"/>
+        <!-- 좌측 세로 악센트 바 -->
+        <rect x="0" width="6" height="360" fill="#{s[:accent]}"/>
+        <!-- 격자 배경 -->
+        #{grid_lines(s[:accent], 0.05)}
+        <!-- 채널명 상단 -->
+        <text x="30" y="50" fill="#{s[:accent]}" font-family="sans-serif" font-size="14" font-weight="600" letter-spacing="2">#{esc(ch.upcase)}</text>
+        <!-- 구분선 -->
+        <line x1="30" y1="65" x2="200" y2="65" stroke="#{s[:accent]}" stroke-width="1" opacity="0.4"/>
+        <!-- 배지 -->
+        <rect x="30" y="80" width="#{s[:badge].length * 12 + 16}" height="24" rx="3" fill="#{s[:badge_bg]}" opacity="0.8"/>
+        <text x="38" y="97" fill="white" font-family="sans-serif" font-size="12" font-weight="600">#{esc(s[:badge])}</text>
+        <!-- 메인 텍스트 -->
+        <text x="30" y="#{lines.size == 1 ? 220 : 195}" fill="#{s[:text_color]}" font-family="sans-serif" font-size="36" font-weight="700" letter-spacing="-0.5">#{esc(lines[0])}</text>
+        #{lines[1] ? "<text x=\"30\" y=\"240\" fill=\"#{s[:text_color]}\" font-family=\"sans-serif\" font-size=\"36\" font-weight=\"700\" letter-spacing=\"-0.5\">#{esc(lines[1])}</text>" : ""}
+        <!-- 하단 -->
+        <line x1="30" y1="310" x2="610" y2="310" stroke="#{s[:accent]}" stroke-width="1" opacity="0.2"/>
+        <text x="30" y="340" fill="#{s[:accent]}" opacity="0.6" font-family="sans-serif" font-size="12" font-weight="500">RESEARCH &amp; ANALYSIS REPORT</text>
+      </svg>
+    SVG
+  end
+
+  # --- 차트 스타일: 그래프 아이콘, 데이터 강조 ---
+  def render_chart(s, ch, headline, _topic)
+    lines = split_headline(headline, 11)
+    # 가짜 막대 차트 배경
+    bars = (1..8).map { |i| "<rect x=\"#{420 + i * 25}\" y=\"#{100 + rand(30..180)}\" width=\"18\" height=\"#{rand(60..200)}\" rx=\"3\" fill=\"#{s[:accent]}\" opacity=\"0.12\"/>" }.join
+    <<~SVG
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+        <rect width="640" height="360" fill="#{s[:bg]}"/>
+        <!-- 차트 배경 장식 -->
+        #{bars}
+        <!-- 추세선 -->
+        <polyline points="30,280 120,240 200,260 300,200 400,180 500,150 600,120" fill="none" stroke="#{s[:accent]}" stroke-width="3" opacity="0.15"/>
+        <!-- 채널명 -->
+        <rect x="20" y="20" width="#{ch.length * 14 + 20}" height="30" rx="15" fill="#{s[:accent]}" opacity="0.9"/>
+        <text x="#{30 + ch.length * 7}" y="41" text-anchor="middle" fill="white" font-family="sans-serif" font-size="13" font-weight="700">#{esc(ch)}</text>
+        <!-- 배지 -->
+        <rect x="#{ch.length * 14 + 52}" y="22" width="#{s[:badge].length * 11 + 12}" height="26" rx="4" fill="#{s[:badge_bg]}" opacity="0.7"/>
+        <text x="#{ch.length * 14 + 58}" y="40" fill="white" font-family="sans-serif" font-size="11" font-weight="600">#{esc(s[:badge])}</text>
+        <!-- 메인 텍스트 -->
+        <text x="30" y="#{lines.size == 1 ? 200 : 175}" fill="#{s[:text_color]}" font-family="sans-serif" font-size="40" font-weight="900" letter-spacing="-1">#{esc(lines[0])}</text>
+        #{lines[1] ? "<text x=\"30\" y=\"225\" fill=\"#{s[:text_color]}\" font-family=\"sans-serif\" font-size=\"40\" font-weight=\"900\" letter-spacing=\"-1\">#{esc(lines[1])}</text>" : ""}
+        <!-- 하단 데이터 라벨 -->
+        <text x="30" y="330" fill="#{s[:accent]}" opacity="0.5" font-family="monospace" font-size="11">DATA ANALYSIS #{Time.current.year}</text>
+      </svg>
+    SVG
+  end
+
+  # --- 다큐 스타일: 영화 포스터 느낌 ---
+  def render_documentary(s, ch, headline, _topic)
+    lines = split_headline(headline, 10)
+    <<~SVG
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+        <defs>
+          <linearGradient id="docbg" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#{s[:bg]}" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#{s[:accent]}" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#{s[:bg]}" stop-opacity="1"/>
+          </linearGradient>
+        </defs>
+        <rect width="640" height="360" fill="url(#docbg)"/>
+        <!-- 상하 시네마 바 -->
+        <rect width="640" height="40" fill="black"/>
+        <rect y="320" width="640" height="40" fill="black"/>
+        <!-- 배지 -->
+        <rect x="24" y="8" width="#{s[:badge].length * 13 + 14}" height="24" rx="3" fill="#{s[:badge_bg]}"/>
+        <text x="31" y="25" fill="white" font-family="sans-serif" font-size="12" font-weight="700">#{esc(s[:badge])}</text>
+        <!-- 메인 텍스트 (영화 포스터 느낌) -->
+        <text x="320" y="#{lines.size == 1 ? 195 : 170}" text-anchor="middle" fill="#{s[:text_color]}" font-family="sans-serif" font-size="44" font-weight="900" letter-spacing="-1">#{esc(lines[0])}</text>
+        #{lines[1] ? "<text x=\"320\" y=\"225\" text-anchor=\"middle\" fill=\"#{s[:text_color]}\" font-family=\"sans-serif\" font-size=\"44\" font-weight=\"900\" letter-spacing=\"-1\">#{esc(lines[1])}</text>" : ""}
+        <!-- 하단 채널명 -->
+        <text x="320" y="348" text-anchor="middle" fill="#{s[:accent]}" font-family="sans-serif" font-size="13" font-weight="600" letter-spacing="3">#{esc(ch.upcase)}</text>
+      </svg>
+    SVG
+  end
+
+  # --- 친근한 스타일: 밝은 톤, 둥근 요소 ---
+  def render_friendly(s, ch, headline, _topic)
+    lines = split_headline(headline, 10)
+    <<~SVG
+      <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+        <rect width="640" height="360" fill="#{s[:bg]}"/>
+        <!-- 둥근 장식 원 -->
+        <circle cx="540" cy="100" r="150" fill="#{s[:accent]}" opacity="0.08"/>
+        <circle cx="80" cy="320" r="100" fill="#{s[:accent]}" opacity="0.06"/>
+        <circle cx="600" cy="300" r="60" fill="#{s[:accent]}" opacity="0.1"/>
+        <!-- 채널 아이콘 (둥근 이니셜) -->
+        <circle cx="56" cy="42" r="24" fill="#{s[:accent]}"/>
+        <text x="56" y="49" text-anchor="middle" fill="white" font-family="sans-serif" font-size="16" font-weight="800">#{esc(ch[0])}</text>
+        <text x="90" y="49" fill="#{s[:text_color]}" font-family="sans-serif" font-size="16" font-weight="700">#{esc(ch)}</text>
+        <!-- 배지 -->
+        <rect x="#{90 + ch.length * 16 + 8}" y="28" width="#{s[:badge].length * 12 + 16}" height="26" rx="13" fill="#{s[:badge_bg]}" opacity="0.8"/>
+        <text x="#{98 + ch.length * 16 + 8}" y="46" fill="white" font-family="sans-serif" font-size="12" font-weight="600">#{esc(s[:badge])}</text>
+        <!-- 메인 텍스트 -->
+        <text x="40" y="#{lines.size == 1 ? 210 : 185}" fill="#{s[:text_color]}" font-family="sans-serif" font-size="40" font-weight="800">#{esc(lines[0])}</text>
+        #{lines[1] ? "<text x=\"40\" y=\"235\" fill=\"#{s[:accent]}\" font-family=\"sans-serif\" font-size=\"40\" font-weight=\"800\">#{esc(lines[1])}</text>" : ""}
+        <!-- 하단 키워드 태그들 -->
+        <rect x="40" y="290" width="60" height="24" rx="12" fill="#{s[:accent]}" opacity="0.2"/>
+        <text x="70" y="306" text-anchor="middle" fill="#{s[:accent]}" font-family="sans-serif" font-size="11" font-weight="600">#분석</text>
+        <rect x="110" y="290" width="70" height="24" rx="12" fill="#{s[:accent]}" opacity="0.2"/>
+        <text x="145" y="306" text-anchor="middle" fill="#{s[:accent]}" font-family="sans-serif" font-size="11" font-weight="600">#쉽게설명</text>
+      </svg>
+    SVG
+  end
+
+  # --- 유틸리티 ---
+
+  def split_headline(text, max_chars)
+    return [text] if text.length <= max_chars
+    mid = text.length / 2
+    split_pos = text.rindex(/[\s,·:]/, mid) || mid
+    [text[0...split_pos].strip, text[split_pos..].strip]
+  end
+
+  def esc(text)
     text.to_s.gsub("&", "&amp;").gsub("<", "&lt;").gsub(">", "&gt;").gsub("\"", "&quot;").gsub("'", "&apos;")
+  end
+
+  def dot_grid(color, opacity)
+    dots = []
+    (0..15).each { |x| (0..8).each { |y| dots << "<circle cx=\"#{x * 40 + 20}\" cy=\"#{y * 40 + 20}\" r=\"1.5\" fill=\"#{color}\" opacity=\"#{opacity}\"/>" } }
+    dots.join("\n        ")
+  end
+
+  def grid_lines(color, opacity)
+    lines = []
+    (0..8).each { |i| lines << "<line x1=\"0\" y1=\"#{i * 45}\" x2=\"640\" y2=\"#{i * 45}\" stroke=\"#{color}\" stroke-width=\"0.5\" opacity=\"#{opacity}\"/>" }
+    (0..16).each { |i| lines << "<line x1=\"#{i * 40}\" y1=\"0\" x2=\"#{i * 40}\" y2=\"360\" stroke=\"#{color}\" stroke-width=\"0.5\" opacity=\"#{opacity}\"/>" }
+    lines.join("\n        ")
   end
 end

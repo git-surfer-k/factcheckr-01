@@ -6,7 +6,11 @@ module ApplicationHelper
   # 팩트체크 썸네일 URL을 반환한다.
   # video_thumbnail이 있으면 그대로, 없으면 동적 SVG 썸네일 사용
   def fact_check_thumbnail_url(check)
-    check.video_thumbnail.present? ? check.video_thumbnail : thumbnail_path(check.id)
+    if check.video_thumbnail.present?
+      check.video_thumbnail
+    else
+      thumbnail_path(check.id, v: 2)
+    end
   end
 
   # 팩트체크 점수에 따라 원형 배지 테두리 색상 클래스를 반환한다.
