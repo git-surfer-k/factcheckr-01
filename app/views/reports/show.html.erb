@@ -96,8 +96,10 @@
         }
         var token = sessionToken.trim().split('=')[1];
 
+        var savedClasses = ['bg-yellow-50', 'border-yellow-300', 'text-yellow-700', 'hover:bg-yellow-100', 'focus:ring-yellow-400'];
+        var defaultClasses = ['border-gray-300', 'text-gray-600', 'hover:bg-gray-50', 'focus:ring-gray-400'];
+
         if (isBookmarked) {
-          // 삭제
           var res = await fetch('/api/v1/bookmarks/' + factCheckId, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json', 'X-Session-Token': token }
@@ -105,10 +107,10 @@
           if (res.ok) {
             icon.setAttribute('fill', 'none');
             text.textContent = '내 기록에 담기';
-            btn.className = btn.className.replace(/bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100 focus:ring-yellow-400/g, 'border-gray-300 text-gray-600 hover:bg-gray-50 focus:ring-gray-400');
+            btn.classList.remove(...savedClasses);
+            btn.classList.add(...defaultClasses);
           }
         } else {
-          // 저장
           var res = await fetch('/api/v1/bookmarks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Session-Token': token },
@@ -117,7 +119,8 @@
           if (res.ok || res.status === 201) {
             icon.setAttribute('fill', 'currentColor');
             text.textContent = '저장됨';
-            btn.className = btn.className.replace(/border-gray-300 text-gray-600 hover:bg-gray-50 focus:ring-gray-400/g, 'bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100 focus:ring-yellow-400');
+            btn.classList.remove(...defaultClasses);
+            btn.classList.add(...savedClasses);
           } else if (res.status === 401) {
             window.location.href = '/auth';
           }
