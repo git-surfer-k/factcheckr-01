@@ -77,6 +77,9 @@ Rails.application.routes.draw do
     get  "/billing",      to: "billing#index",    as: :billing
   end
 
+  # 동적 썸네일 생성
+  get "/thumbnails/:id", to: "thumbnails#show", as: :thumbnail
+
   # Health check
   get '/health', to: proc { [200, {}, [{ status: 'healthy' }.to_json]] }
 end

@@ -226,7 +226,7 @@ CHANNELS.each_with_index do |ch, idx|
       f.channel = channel
       f.youtube_url = "https://www.youtube.com/watch?v=#{video_id}"
       f.video_title = "#{ch[:name]} — #{title_suffix}"
-      f.video_thumbnail = "https://img.youtube.com/vi/#{video_id}/hqdefault.jpg"
+      f.video_thumbnail = ""  # 동적 썸네일 사용 (/thumbnails/:id)
       f.summary = summary
       f.overall_score = [[ch[:trust] + rand(-8.0..8.0), 0].max, 100].min.round(2)
       f.status = :completed
