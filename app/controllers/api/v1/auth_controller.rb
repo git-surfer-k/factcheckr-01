@@ -27,9 +27,13 @@ module Api
         user = User.find_or_initialize_by(email: email)
 
         if user.new_record?
-          # 신규 사용자: 아직 저장하지 않고 OTP만 생성
+          # 신규 사용자 생성
           user.user_type = :b2c
+          user.name = params[:name] if params[:name].present?
           user.save!
+        elsif params[:name].present? && user.name.blank?
+          # 기존 사용자인데 이름이 없으면 업데이트
+          user.update(name: params[:name])
         end
 
         # 비활성 사용자 차단
