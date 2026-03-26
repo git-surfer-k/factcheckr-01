@@ -40,7 +40,7 @@ module Api
 
         # OTP 생성 및 이메일 발송
         user.generate_otp!
-        OtpMailer.send_otp(user).deliver_later
+        OtpMailer.send_otp(user).deliver_now
 
         render json: {
           message: "인증 코드가 이메일로 발송되었습니다.",
