@@ -11,7 +11,7 @@ class AdminTest < ActionDispatch::IntegrationTest
   setup do
     # 기본 관리자 자격 증명
     @admin_email = ENV.fetch("ADMIN_EMAIL", "blek.park@gmail.com")
-    @admin_password = ENV.fetch("ADMIN_PASSWORD", "factis-admin-2026")
+    @admin_password = ENV.fetch("ADMIN_PASSWORD", "factcheckr-admin-2026")
 
     # 테스트 사용자 생성
     @user = User.create!(
@@ -79,7 +79,7 @@ class AdminTest < ActionDispatch::IntegrationTest
   end
 
   test "관리자 로그인 실패 - 잘못된 이메일" do
-    post "/admin/login", params: { email: "wrong@factis.com", password: @admin_password }
+    post "/admin/login", params: { email: "wrong@factcheckr.com", password: @admin_password }
     assert_response :unprocessable_entity
   end
 
@@ -190,13 +190,13 @@ class AdminTest < ActionDispatch::IntegrationTest
     patch "/admin/settings", params: {
       settings: {
         openai_model: "gpt-4o-mini",
-        resend_from_email: "Test <test@factis.com>"
+        resend_from_email: "Test <test@factcheckr.com>"
       }
     }
     assert_redirected_to "/admin/settings"
 
     assert_equal "gpt-4o-mini", AdminSetting.get("openai_model")
-    assert_equal "Test <test@factis.com>", AdminSetting.get("resend_from_email")
+    assert_equal "Test <test@factcheckr.com>", AdminSetting.get("resend_from_email")
   end
 
   # 마스킹된 값은 업데이트하지 않음

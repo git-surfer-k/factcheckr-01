@@ -47,9 +47,9 @@ class LayoutTest < ActionDispatch::IntegrationTest
   end
 
   # 레이아웃에 로고가 포함되어 있는지 확인
-  test "레이아웃에 Factis 로고가 있다" do
+  test "레이아웃에 FactCheckr 로고가 있다" do
     get root_path
-    assert_select "a", text: /Factis/
+    assert_select "a", text: /FactCheckr/
   end
 
   # 웹 상단 네비게이션에 메뉴 항목이 있는지 확인

@@ -12,6 +12,6 @@ class OtpMailer < ApplicationMailer
     # 개발 환경에서는 로그에 OTP 출력 (디버깅용)
     Rails.logger.info "[OTP] #{@user.email} 에게 발송된 OTP: #{@otp_code}"
 
-    mail(to: @user.email, subject: "[Factis] 로그인 인증 코드: #{@otp_code}")
+    mail(to: @user.email, subject: "[FactCheckr] 로그인 인증 코드: #{@otp_code}")
   end
 end

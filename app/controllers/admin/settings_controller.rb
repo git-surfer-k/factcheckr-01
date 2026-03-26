@@ -44,7 +44,7 @@ module Admin
     # POST /admin/settings/test_email - 테스트 이메일 발송
     def test_email
       api_key = AdminSetting.get("resend_api_key", ENV["RESEND_API_KEY"])
-      from_email = AdminSetting.get("resend_from_email", "Factis <noreply@factis.com>")
+      from_email = AdminSetting.get("resend_from_email", "FactCheckr <noreply@gt-auto.cc>")
       admin_email = ENV.fetch("ADMIN_EMAIL", "blek.park@gmail.com")
 
       if api_key.blank?
@@ -61,8 +61,8 @@ module Admin
         payload = {
           from: from_email,
           to: [test_to],
-          subject: "[Factis] 테스트 이메일",
-          html: "<h2>Factis 관리자 테스트 이메일</h2><p>이 메일이 정상적으로 수신되었다면 Resend 설정이 올바르게 구성된 것입니다.</p><p>발송 시각: #{Time.current}</p>"
+          subject: "[FactCheckr] 테스트 이메일",
+          html: "<h2>FactCheckr 관리자 테스트 이메일</h2><p>이 메일이 정상적으로 수신되었다면 Resend 설정이 올바르게 구성된 것입니다.</p><p>발송 시각: #{Time.current}</p>"
         }
 
         response = Net::HTTP.post(
@@ -97,7 +97,7 @@ module Admin
         "bigkinds_return_size" => "10",
         "bigkinds_search_days" => "30",
         "resend_api_key" => "",
-        "resend_from_email" => "Factis <noreply@factis.com>"
+        "resend_from_email" => "FactCheckr <noreply@gt-auto.cc>"
       }
 
       defaults.each_with_object({}) do |(key, default), hash|

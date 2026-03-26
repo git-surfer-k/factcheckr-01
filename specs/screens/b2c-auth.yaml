@@ -25,7 +25,7 @@ components:
   - id: logo_banner
     type: image
     position: main
-    function: Factis 로고 및 서비스 소개 문구 표시
+    function: FactCheckr 로고 및 서비스 소개 문구 표시
 
 connections:
   navigations:

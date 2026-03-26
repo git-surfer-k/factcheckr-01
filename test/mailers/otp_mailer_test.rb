@@ -13,6 +13,6 @@ class OtpMailerTest < ActionMailer::TestCase
 
     assert_equal ["mailer-test@example.com"], email.to
     assert_includes email.subject, user.otp_code
-    assert_includes email.subject, "Factis"
+    assert_includes email.subject, "FactCheckr"
   end
 end

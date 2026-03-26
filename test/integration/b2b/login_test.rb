@@ -20,11 +20,11 @@ class B2bLoginTest < ActionDispatch::IntegrationTest
     assert_select "[data-layout='b2b']"
   end
 
-  # "Factis for Business" 브랜딩이 표시되는지 확인
-  test "Factis for Business 브랜딩이 표시된다" do
+  # "FactCheckr for Business" 브랜딩이 표시되는지 확인
+  test "FactCheckr for Business 브랜딩이 표시된다" do
     get b2b_login_path
     assert_select "[data-component='b2b-brand']"
-    assert_match "Factis for Business", response.body
+    assert_match "FactCheckr for Business", response.body
   end
 
   # 이메일 입력 폼이 존재하는지 확인

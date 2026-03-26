@@ -1,6 +1,6 @@
 # Design System
 
-> Factis — 디자인 시스템
+> FactCheckr — 디자인 시스템
 
 ---
 

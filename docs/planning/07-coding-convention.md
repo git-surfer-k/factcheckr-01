@@ -1,6 +1,6 @@
 # Coding Convention
 
-> Factis — 코딩 컨벤션
+> FactCheckr — 코딩 컨벤션
 
 ---
 

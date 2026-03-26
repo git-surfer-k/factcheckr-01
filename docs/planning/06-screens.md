@@ -1,6 +1,6 @@
 # Screens (화면 정의서)
 
-> Factis — 화면 목록 및 구성 요소
+> FactCheckr — 화면 목록 및 구성 요소
 > 이 문서는 /screen-spec의 입력이 됩니다.
 
 ---

@@ -1,5 +1,5 @@
 # 도메인 리소스 정의
-# Factis — 유튜브 팩트체크 플랫폼
+# FactCheckr — 유튜브 팩트체크 플랫폼
 
 resources:
   users:

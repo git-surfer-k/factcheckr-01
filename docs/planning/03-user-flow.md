@@ -1,6 +1,6 @@
 # User Flow
 
-> Factis — 사용자 흐름도
+> FactCheckr — 사용자 흐름도
 
 ---
 

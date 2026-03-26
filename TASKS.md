@@ -1,4 +1,4 @@
-# TASKS.md — Factis
+# TASKS.md — FactCheckr
 
 > 유튜브 시사/뉴스 채널 AI 팩트체크 플랫폼
 > Domain-Guarded 모드 | 화면 명세 기반 생성

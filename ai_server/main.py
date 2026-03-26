@@ -1,4 +1,4 @@
-# @TASK P2-R4-T1 - Factis AI 서버 엔트리포인트
+# @TASK P2-R4-T1 - FactCheckr AI 서버 엔트리포인트
 # @SPEC docs/planning/02-trd.md#FastAPI-AI-서버
 #
 # 유튜브 영상 분석 및 팩트체크 파이프라인 서버입니다.
@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.analysis import router as analysis_router
 
 app = FastAPI(
-    title="Factis AI Server",
+    title="FactCheckr AI Server",
     description="유튜브 영상 AI 팩트체크 파이프라인",
     version="0.1.0",
 )
@@ -38,4 +38,4 @@ app.include_router(analysis_router)
 @app.get("/health")
 async def health_check():
     """헬스체크 엔드포인트"""
-    return {"status": "ok", "service": "factis-ai"}
+    return {"status": "ok", "service": "factcheckr-ai"}

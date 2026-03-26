@@ -1,6 +1,6 @@
 # Database Design
 
-> Factis — 데이터베이스 설계
+> FactCheckr — 데이터베이스 설계
 
 ---
 

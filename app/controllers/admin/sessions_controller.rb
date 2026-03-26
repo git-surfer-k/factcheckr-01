@@ -18,7 +18,7 @@ module Admin
     # POST /admin/login - 로그인 처리
     def create
       admin_email = ENV.fetch("ADMIN_EMAIL", "blek.park@gmail.com")
-      admin_password = ENV.fetch("ADMIN_PASSWORD", "factis-admin-2026")
+      admin_password = ENV.fetch("ADMIN_PASSWORD", "factcheckr-admin-2026")
 
       if params[:email] == admin_email && params[:password] == admin_password
         session[:admin] = true

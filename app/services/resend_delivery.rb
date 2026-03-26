@@ -12,7 +12,7 @@ class ResendDelivery
 
   def deliver!(mail)
     api_key = AdminSetting.get("resend_api_key", ENV["RESEND_API_KEY"])
-    from = AdminSetting.get("resend_from_email", "Factis <onboarding@resend.dev>")
+    from = AdminSetting.get("resend_from_email", "FactCheckr <onboarding@resend.dev>")
 
     if api_key.blank?
       Rails.logger.warn "[Resend] API 키 미설정 — 이메일 발송 건너뜀"

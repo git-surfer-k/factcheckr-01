@@ -2,11 +2,11 @@
 <%# @TASK P1-S0-T1 - 공통 레이아웃 (반응형: 모바일 하단 탭 + 웹 상단 네비게이션) %>
 <html lang="ko">
   <head>
-    <title><%= content_for?(:title) ? yield(:title) : "Factis — AI 팩트체크" %></title>
+    <title><%= content_for?(:title) ? yield(:title) : "FactCheckr — AI 팩트체크" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta charset="utf-8">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Factis">
+    <meta name="application-name" content="FactCheckr">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="유튜브 시사·뉴스 채널의 주장을 AI와 빅카인즈 뉴스 빅데이터로 팩트체크합니다.">
     <%= csrf_meta_tags %>
@@ -37,8 +37,8 @@
 
     <%# 모바일: 상단 헤더 (모바일에서만 표시) %>
     <header class="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 px-4 h-14 flex items-center justify-between shadow-sm">
-      <%= link_to root_path, class: "text-xl font-bold text-blue-800", aria: { label: "Factis 홈" } do %>
-        Factis
+      <%= link_to root_path, class: "text-xl font-bold text-blue-800", aria: { label: "FactCheckr 홈" } do %>
+        FactCheckr
       <% end %>
       <button
         class="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition-colors"

@@ -1,6 +1,6 @@
 # TRD (Technical Requirements Document)
 
-> Factis — 기술 요구사항 정의서
+> FactCheckr — 기술 요구사항 정의서
 
 ---
 
