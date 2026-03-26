@@ -147,7 +147,7 @@ flowchart TD
 
 ### P1-R1: Users/Auth Resource
 
-#### [ ] P1-R1-T1: Users/Auth API 구현
+#### [x] P1-R1-T1: Users/Auth API 구현
 - **담당**: backend-specialist
 - **리소스**: users
 - **엔드포인트**:
@@ -162,7 +162,7 @@ flowchart TD
 
 ### P1-R2: Subscriptions Resource
 
-#### [ ] P1-R2-T1: Subscriptions API 구현
+#### [x] P1-R2-T1: Subscriptions API 구현
 - **담당**: backend-specialist
 - **리소스**: subscriptions
 - **엔드포인트**:
@@ -178,7 +178,7 @@ flowchart TD
 
 ### P1-S0: 공통 레이아웃
 
-#### [ ] P1-S0-T1: 공통 레이아웃 UI 구현
+#### [x] P1-S0-T1: 공통 레이아웃 UI 구현
 - **담당**: frontend-specialist
 - **화면**: 공통 (모든 페이지에 적용)
 - **컴포넌트**:
