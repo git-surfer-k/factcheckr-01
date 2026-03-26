@@ -16,7 +16,14 @@ class Settings(BaseSettings):
 
     # 빅카인즈 뉴스 API 설정
     bigkinds_api_key: str = ""
-    bigkinds_base_url: str = "https://tools.kinds.or.kr/search/news"
+    bigkinds_search_url: str = "https://tools.kinds.or.kr/search/news"
+    bigkinds_word_cloud_url: str = "https://tools.kinds.or.kr/word_cloud"
+    bigkinds_issue_ranking_url: str = "https://tools.kinds.or.kr/issue_ranking"
+
+    # 빅카인즈 검색 설정
+    bigkinds_return_size: int = 5       # 주장당 검색 결과 수
+    bigkinds_hilight_length: int = 200  # 하이라이트 길이
+    bigkinds_search_days: int = 365     # 검색 기간 (일)
 
     # Whisper 설정
     whisper_model: str = "base"

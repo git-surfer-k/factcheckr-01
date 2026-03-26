@@ -33,7 +33,7 @@ from services.pipeline import AnalysisPipeline, TaskStore
 from services.video_downloader import MockVideoDownloader
 from services.transcriber import MockTranscriber
 from services.claim_extractor import MockClaimExtractor
-from services.news_matcher import MockNewsMatcher
+from services.news_matcher import BigKindsNewsMatcher, MockNewsMatcher
 from services.fact_checker import MockFactChecker, OpenAIFactChecker
 from config.settings import Settings, reset_settings
 
@@ -87,6 +87,36 @@ class TestSchemas:
         assert VerificationVerdict.FALSE == "false"
         assert VerificationVerdict.UNVERIFIABLE == "unverifiable"
 
+    def test_news_article_bigkinds_fields(self):
+        """NewsArticle에 빅카인즈 확장 필드가 올바르게 설정되는지 확인합니다."""
+        article = NewsArticle(
+            news_id="BK-001",
+            title="테스트 기사",
+            content="테스트 본문",
+            hilight="<em>테스트</em> 하이라이트",
+            source="한국경제",
+            published_at="2026-03-20T00:00:00.000+09:00",
+            url="https://example.com/news/1",
+            byline="홍길동",
+            category=["경제>경제일반", "경제>증권_증시"],
+            provider_news_id="HK-20260320-001",
+            relevance_score=0.95,
+        )
+        assert article.news_id == "BK-001"
+        assert article.hilight == "<em>테스트</em> 하이라이트"
+        assert article.byline == "홍길동"
+        assert len(article.category) == 2
+        assert article.provider_news_id == "HK-20260320-001"
+
+    def test_news_article_defaults(self):
+        """NewsArticle 기본값이 올바르게 설정되는지 확인합니다."""
+        article = NewsArticle(title="제목만 있는 기사")
+        assert article.news_id == ""
+        assert article.hilight == ""
+        assert article.byline == ""
+        assert article.category == []
+        assert article.provider_news_id == ""
+
     def test_analysis_result_defaults(self):
         """AnalysisResult 기본값이 올바르게 설정되는지 확인합니다."""
         result = AnalysisResult()
@@ -113,6 +143,16 @@ class TestSettings:
         assert settings.openai_model == "gpt-4o"
         assert settings.bigkinds_api_key == ""
         assert settings.whisper_model == "base"
+
+    def test_bigkinds_settings_defaults(self):
+        """빅카인즈 설정 기본값이 올바르게 설정되는지 확인합니다."""
+        settings = Settings()
+        assert settings.bigkinds_search_url == "https://tools.kinds.or.kr/search/news"
+        assert settings.bigkinds_word_cloud_url == "https://tools.kinds.or.kr/word_cloud"
+        assert settings.bigkinds_issue_ranking_url == "https://tools.kinds.or.kr/issue_ranking"
+        assert settings.bigkinds_return_size == 5
+        assert settings.bigkinds_hilight_length == 200
+        assert settings.bigkinds_search_days == 365
 
     def test_env_prefix(self):
         """환경변수 접두사가 FACTIS_인지 확인합니다."""
@@ -243,6 +283,23 @@ class TestMockNewsMatcher:
         assert results[0].match_count > 0
         assert len(results[0].articles) > 0
 
+    @pytest.mark.asyncio
+    async def test_mock_articles_have_bigkinds_fields(self):
+        """Mock 뉴스 기사에 빅카인즈 확장 필드가 포함되는지 확인합니다."""
+        matcher = MockNewsMatcher()
+        claims = ClaimExtractionResult(
+            claims=[Claim(text="테스트 주장")],
+            total_count=1,
+        )
+        results = await matcher.match_news(claims)
+        article = results[0].articles[0]
+        # 빅카인즈 확장 필드 확인
+        assert article.news_id != ""
+        assert article.hilight != ""
+        assert article.byline != ""
+        assert len(article.category) > 0
+        assert article.provider_news_id != ""
+
 
 class TestMockFactChecker:
     """Mock 팩트체커 테스트"""
@@ -362,6 +419,291 @@ class TestSummaryGeneration:
         """검증 결과가 없는 경우 기본 메시지를 반환합니다."""
         summary = OpenAIFactChecker._generate_summary([], 0.0)
         assert "검증할 주장이 없습니다" in summary
+
+
+# ==========================================
+# 빅카인즈 쿼리 빌더 테스트
+# ==========================================
+
+class TestBigKindsQueryBuilder:
+    """BigKindsNewsMatcher의 쿼리 빌더 테스트"""
+
+    def test_build_query_with_enough_keywords(self):
+        """키워드가 3개 이상이면 상위 3개를 AND로 결합합니다."""
+        claim = Claim(text="한국 경제 성장률이 올해 3.5%를 기록했다고 발표했다")
+        query = BigKindsNewsMatcher._build_search_query(claim)
+        # AND 연산자로 결합된 쿼리인지 확인
+        assert "AND" in query
+        # 최대 3개 키워드로 제한 (AND 2개 = 키워드 3개)
+        assert query.count("AND") <= 2
+
+    def test_build_query_with_few_keywords(self):
+        """키워드가 적으면 있는 것만 AND로 결합합니다."""
+        claim = Claim(text="경제 성장")
+        query = BigKindsNewsMatcher._build_search_query(claim)
+        # 키워드가 있으면 AND로 결합
+        assert "경제" in query
+        assert "성장" in query
+
+    def test_build_query_fallback_to_phrase(self):
+        """키워드 추출 실패 시 원문 구문 검색을 사용합니다."""
+        # 불용어로만 구성된 텍스트 (키워드 추출 불가)
+        claim = Claim(text="이 그 저 것 등 및")
+        query = BigKindsNewsMatcher._build_search_query(claim)
+        # 구문 검색 (큰따옴표)으로 폴백
+        assert query.startswith('"')
+        assert query.endswith('"')
+
+    def test_extract_keywords_removes_stopwords(self):
+        """불용어를 제거하고 핵심 키워드만 추출합니다."""
+        keywords = BigKindsNewsMatcher._extract_keywords(
+            "정부에서 발표한 경제 성장률에 대한 보고서를 통해 확인했다"
+        )
+        # 불용어 ('에서', '대한', '통해') 제거 확인
+        assert "에서" not in keywords
+        assert "대한" not in keywords
+        assert "통해" not in keywords
+        # 핵심 키워드 포함 확인
+        assert "정부" in keywords
+        assert "경제" in keywords
+        assert "성장률" in keywords
+
+    def test_extract_keywords_includes_numbers(self):
+        """숫자+단위 패턴도 키워드로 포함합니다."""
+        keywords = BigKindsNewsMatcher._extract_keywords(
+            "GDP 성장률이 3.5%를 기록하며 100조원 규모의 투자가 진행됐다"
+        )
+        # 숫자+단위 패턴 확인
+        assert "3.5%" in keywords
+        assert "100조원" in keywords or "100조" in keywords
+
+    def test_extract_keywords_no_duplicates(self):
+        """중복 키워드를 제거합니다."""
+        keywords = BigKindsNewsMatcher._extract_keywords(
+            "경제 성장과 경제 발전은 다르다"
+        )
+        # 중복 제거 확인
+        assert keywords.count("경제") == 1
+
+
+class TestBigKindsResponseParsing:
+    """BigKindsNewsMatcher의 응답 파싱 테스트"""
+
+    def test_parse_document_full_fields(self):
+        """모든 필드가 있는 빅카인즈 응답 문서를 올바르게 파싱합니다."""
+        doc = {
+            "news_id": "NEWS-001",
+            "title": "GDP 성장률 3.5%",
+            "content": "본문 내용" * 100,  # 긴 본문
+            "hilight": "<em>GDP</em> 성장률 3.5%",
+            "provider": "한국경제",
+            "published_at": "2026-03-20T00:00:00.000+09:00",
+            "provider_link_page": "https://example.com/news/1",
+            "byline": "홍길동",
+            "category": ["경제>경제일반"],
+            "provider_news_id": "HK-20260320-001",
+            "score": 0.95,
+        }
+        article = BigKindsNewsMatcher._parse_document(doc)
+        assert article.news_id == "NEWS-001"
+        assert article.title == "GDP 성장률 3.5%"
+        assert len(article.content) <= 500  # 본문 500자 제한
+        assert article.hilight == "<em>GDP</em> 성장률 3.5%"
+        assert article.source == "한국경제"
+        assert article.byline == "홍길동"
+        assert article.category == ["경제>경제일반"]
+        assert article.provider_news_id == "HK-20260320-001"
+        assert article.relevance_score == 0.95
+
+    def test_parse_document_missing_fields(self):
+        """누락된 필드가 있는 빅카인즈 응답 문서도 안전하게 파싱합니다."""
+        doc = {"title": "제목만 있는 기사"}
+        article = BigKindsNewsMatcher._parse_document(doc)
+        assert article.title == "제목만 있는 기사"
+        assert article.news_id == ""
+        assert article.hilight == ""
+        assert article.byline == ""
+        assert article.category == []
+        assert article.provider_news_id == ""
+        assert article.relevance_score == 0.0
+
+    def test_parse_document_null_category(self):
+        """category가 None인 경우 빈 리스트로 처리합니다."""
+        doc = {"title": "기사", "category": None}
+        article = BigKindsNewsMatcher._parse_document(doc)
+        assert article.category == []
+
+
+class TestBigKindsErrorHandling:
+    """BigKindsNewsMatcher의 에러 처리 테스트"""
+
+    @pytest.mark.asyncio
+    async def test_api_error_code_raises_runtime_error(self):
+        """빅카인즈 API가 에러 코드를 반환하면 RuntimeError가 발생합니다."""
+        import httpx
+        from unittest.mock import MagicMock
+
+        matcher = BigKindsNewsMatcher()
+        settings = Settings(
+            bigkinds_api_key="test-key",
+            bigkinds_search_url="https://tools.kinds.or.kr/search/news",
+        )
+
+        # 에러 응답 mock
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {
+            "result": -1,
+            "reason": "Invalid access key",
+        }
+
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+
+        claim = Claim(text="테스트 주장", category="정치")
+
+        with pytest.raises(RuntimeError, match="빅카인즈 API 에러"):
+            await matcher._search_for_claim(mock_client, claim, settings)
+
+    @pytest.mark.asyncio
+    async def test_api_success_code_returns_results(self):
+        """빅카인즈 API가 result=0을 반환하면 정상 처리합니다."""
+        from unittest.mock import MagicMock
+
+        matcher = BigKindsNewsMatcher()
+        settings = Settings(
+            bigkinds_api_key="test-key",
+            bigkinds_search_url="https://tools.kinds.or.kr/search/news",
+        )
+
+        # 성공 응답 mock (result: 0)
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {
+            "result": 0,
+            "return_object": {
+                "total_hits": 1,
+                "documents": [{
+                    "news_id": "NEWS-001",
+                    "title": "테스트 기사",
+                    "content": "테스트 본문",
+                    "hilight": "<em>테스트</em>",
+                    "provider": "한국경제",
+                    "published_at": "2026-03-20",
+                    "provider_link_page": "https://example.com/1",
+                    "byline": "홍길동",
+                    "category": ["경제>경제일반"],
+                    "provider_news_id": "HK-001",
+                    "score": 0.9,
+                }],
+            },
+        }
+
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+
+        claim = Claim(text="경제 성장률 테스트", category="경제")
+        result = await matcher._search_for_claim(mock_client, claim, settings)
+
+        assert result.match_count == 1
+        assert result.articles[0].news_id == "NEWS-001"
+        assert result.articles[0].byline == "홍길동"
+        assert result.articles[0].category == ["경제>경제일반"]
+
+    @pytest.mark.asyncio
+    async def test_individual_claim_failure_returns_empty(self):
+        """개별 주장 검색 실패 시 빈 결과로 처리합니다."""
+        from unittest.mock import MagicMock
+
+        matcher = BigKindsNewsMatcher()
+
+        # API 키 설정
+        settings = Settings(
+            bigkinds_api_key="test-key",
+            bigkinds_search_url="https://tools.kinds.or.kr/search/news",
+        )
+
+        claims = ClaimExtractionResult(
+            claims=[Claim(text="테스트 주장")],
+            total_count=1,
+        )
+
+        # _search_for_claim이 예외를 던지도록 패치
+        with patch.object(
+            BigKindsNewsMatcher,
+            "_search_for_claim",
+            side_effect=RuntimeError("API 호출 실패"),
+        ), patch("services.news_matcher.get_settings", return_value=settings):
+            results = await matcher.match_news(claims)
+
+        assert len(results) == 1
+        assert results[0].match_count == 0
+        assert results[0].articles == []
+
+
+class TestBigKindsCategoryMapping:
+    """빅카인즈 카테고리 매핑 테스트"""
+
+    @pytest.mark.asyncio
+    async def test_category_mapping_applied(self):
+        """주장의 category가 빅카인즈 카테고리로 매핑되어 API 요청에 포함됩니다."""
+        from unittest.mock import MagicMock
+
+        matcher = BigKindsNewsMatcher()
+        settings = Settings(
+            bigkinds_api_key="test-key",
+            bigkinds_search_url="https://tools.kinds.or.kr/search/news",
+        )
+
+        # 성공 응답 mock
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {
+            "result": 0,
+            "return_object": {"total_hits": 0, "documents": []},
+        }
+
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+
+        # 카테고리가 "정치"인 주장
+        claim = Claim(text="대통령 탄핵 관련 주장", category="정치")
+        await matcher._search_for_claim(mock_client, claim, settings)
+
+        # API 요청 본문에 카테고리가 포함되었는지 확인
+        call_args = mock_client.post.call_args
+        request_body = call_args.kwargs.get("json") or call_args[1].get("json")
+        assert "category" in request_body["argument"]
+        assert "정치>정치일반" in request_body["argument"]["category"]
+
+    @pytest.mark.asyncio
+    async def test_no_category_mapping_when_unknown(self):
+        """알 수 없는 카테고리일 때는 category 필터를 포함하지 않습니다."""
+        from unittest.mock import MagicMock
+
+        matcher = BigKindsNewsMatcher()
+        settings = Settings(
+            bigkinds_api_key="test-key",
+            bigkinds_search_url="https://tools.kinds.or.kr/search/news",
+        )
+
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json.return_value = {
+            "result": 0,
+            "return_object": {"total_hits": 0, "documents": []},
+        }
+
+        mock_client = AsyncMock()
+        mock_client.post.return_value = mock_response
+
+        # 매핑되지 않는 카테고리
+        claim = Claim(text="테스트 주장", category="기타")
+        await matcher._search_for_claim(mock_client, claim, settings)
+
+        call_args = mock_client.post.call_args
+        request_body = call_args.kwargs.get("json") or call_args[1].get("json")
+        assert "category" not in request_body["argument"]
 
 
 # ==========================================

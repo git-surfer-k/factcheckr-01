@@ -101,11 +101,16 @@ class ClaimExtractionResult(BaseModel):
 
 class NewsArticle(BaseModel):
     """빅카인즈에서 검색된 뉴스 기사"""
+    news_id: str = Field(default="", description="빅카인즈 뉴스 고유 식별자")
     title: str = Field(..., description="기사 제목")
     content: str = Field(default="", description="기사 본문 요약")
-    source: str = Field(default="", description="언론사")
-    published_at: str = Field(default="", description="발행일")
-    url: str = Field(default="", description="기사 URL")
+    hilight: str = Field(default="", description="검색어 포함 영역 하이라이트")
+    source: str = Field(default="", description="언론사명")
+    published_at: str = Field(default="", description="발행일시")
+    url: str = Field(default="", description="원본 기사 URL")
+    byline: str = Field(default="", description="기자명")
+    category: list[str] = Field(default_factory=list, description="뉴스 분류체계")
+    provider_news_id: str = Field(default="", description="언론사 고유 기사 ID")
     relevance_score: float = Field(default=0.0, description="관련도 점수")
 
 
