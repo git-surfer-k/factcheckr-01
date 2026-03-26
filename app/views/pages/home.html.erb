@@ -1,44 +1,320 @@
-<%# @TASK P1-S0-T1 - 홈 페이지 뷰 (레이아웃 확인용 플레이스홀더) %>
+<%# @TASK P2-S1-T1 - 홈 화면 UI %>
+<%# @SPEC specs/screens/b2c-home.yaml %>
+<%# 디자인 참조: design/screens/web-home.png, design/screens/b2c-home.png %>
 <% content_for :title, "Factis — AI 팩트체크" %>
 
 <div class="min-h-screen bg-gray-50">
-  <%# 히어로 섹션 %>
-  <div class="pt-16 pb-12 text-center px-4">
-    <h1 class="text-3xl md:text-5xl font-bold text-blue-900 mb-4">
+
+  <%# ===== 히어로 섹션: URL 입력 폼 ===== %>
+  <section class="pt-10 pb-10 px-4 text-center" aria-label="팩트체크 시작">
+    <h1 class="text-3xl md:text-5xl font-bold text-blue-900 mb-3 leading-tight">
       유튜브 영상, 사실일까?
     </h1>
-    <p class="text-gray-500 text-base md:text-lg mb-8">
+    <p class="text-gray-500 text-sm md:text-base mb-8">
       AI가 빅카인즈 뉴스 빅데이터로 팩트체크합니다
     </p>
 
-    <%# URL 입력 영역 %>
-    <div class="max-w-2xl mx-auto flex gap-2 bg-white rounded-xl border border-gray-200 p-2 shadow-sm">
-      <div class="flex items-center pl-3 text-gray-400">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-        </svg>
-      </div>
-      <input
-        type="url"
-        placeholder="유튜브 URL을 입력하세요"
-        class="flex-1 py-3 px-2 text-gray-700 bg-transparent outline-none text-sm md:text-base"
-        aria-label="유튜브 URL 입력"
-      >
-      <button
-        class="bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-blue-900 transition-colors"
-        aria-label="팩트체크 시작"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        팩트체크
-      </button>
-    </div>
-  </div>
+    <%# ===== URL 입력 폼 (UrlInput 컴포넌트) ===== %>
+    <%# 모바일: 입력창과 버튼이 세로 배치, 데스크톱: 가로 한 줄로 표시 %>
+    <div class="max-w-2xl mx-auto">
 
-  <%# 최근 팩트체크 섹션 (플레이스홀더) %>
-  <div class="max-w-6xl mx-auto px-4 pb-24 md:pb-8">
-    <h2 class="text-sm font-medium text-gray-500 mb-4">최근 팩트체크</h2>
-    <p class="text-gray-400 text-sm text-center py-16">팩트체크 결과가 여기에 표시됩니다.</p>
-  </div>
+      <%# 데스크톱 레이아웃: 가로 배치 %>
+      <form
+        data-component="url-input"
+        data-action-form="fact-check"
+        class="hidden md:flex gap-2 bg-white rounded-xl border border-gray-200 p-2 shadow-sm"
+        novalidate
+      >
+        <div class="flex items-center pl-3 text-gray-400 flex-shrink-0">
+          <%# 링크 아이콘 %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </div>
+        <input
+          type="url"
+          name="youtube_url"
+          data-input="youtube-url"
+          placeholder="유튜브 URL을 입력하세요"
+          class="flex-1 py-3 px-2 text-gray-700 bg-transparent outline-none text-sm md:text-base"
+          aria-label="유튜브 URL 입력"
+          autocomplete="off"
+          required
+        >
+        <button
+          type="submit"
+          data-action="submit-url"
+          class="bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-blue-900 active:bg-blue-950 transition-colors flex-shrink-0"
+          aria-label="팩트체크 시작"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          팩트체크
+        </button>
+      </form>
+
+      <%# 모바일 레이아웃: 입력창과 버튼을 세로로 배치 %>
+      <form
+        data-component="url-input"
+        data-action-form="fact-check"
+        class="md:hidden flex flex-col gap-3"
+        novalidate
+      >
+        <div class="flex items-center bg-white rounded-xl border border-gray-200 px-4 py-3 shadow-sm gap-3">
+          <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          <input
+            type="url"
+            name="youtube_url"
+            data-input="youtube-url"
+            placeholder="유튜브 URL을 입력하세요"
+            class="flex-1 text-gray-700 bg-transparent outline-none text-sm"
+            aria-label="유튜브 URL 입력"
+            autocomplete="off"
+            required
+          >
+        </div>
+        <button
+          type="submit"
+          data-action="submit-url"
+          class="w-full bg-blue-800 text-white py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-blue-900 active:bg-blue-950 transition-colors"
+          aria-label="팩트체크 시작"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          팩트체크 시작
+        </button>
+      </form>
+
+      <%# URL 유효성 에러 메시지 표시 영역 %>
+      <div
+        data-url-error
+        class="mt-2 text-red-600 text-xs text-left hidden"
+        role="alert"
+        aria-live="polite"
+      >
+        올바른 유튜브 URL을 입력해 주세요. (youtube.com/watch 또는 youtu.be 형식)
+      </div>
+    </div>
+  </section>
+
+  <%# ===== 최근 팩트체크 섹션 (RecentChecks 컴포넌트) ===== %>
+  <section
+    data-component="recent-checks"
+    class="max-w-6xl mx-auto px-4 pb-24 md:pb-12"
+    aria-label="최근 팩트체크 목록"
+  >
+    <h2 class="text-sm font-semibold text-gray-500 mb-4 tracking-wide uppercase">
+      최근 팩트체크
+    </h2>
+
+    <% if @recent_checks.empty? %>
+      <%# ===== 빈 상태 (Empty State) ===== %>
+      <div
+        data-component="empty-state"
+        class="flex flex-col items-center justify-center py-20 text-center"
+        aria-label="팩트체크 기록 없음"
+      >
+        <%# 일러스트 아이콘 %>
+        <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <p class="text-gray-500 text-sm font-medium mb-1">아직 팩트체크한 영상이 없어요</p>
+        <p class="text-gray-400 text-xs">위 검색창에 유튜브 URL을 입력해 시작해보세요</p>
+      </div>
+
+    <% else %>
+      <%# ===== 데스크톱: 카드 그리드 레이아웃 ===== %>
+      <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% @recent_checks.each do |check| %>
+          <%# 팩트체크 카드 - 클릭 시 리포트 상세 페이지로 이동 %>
+          <%= link_to report_path(check.id),
+            class: "bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md hover:border-blue-100 transition-all group",
+            aria: { label: "#{check.video_title} 팩트체크 결과 보기" } do %>
+
+            <%# 썸네일 영역 %>
+            <div class="aspect-video bg-gray-100 overflow-hidden">
+              <% if check.video_thumbnail.present? %>
+                <img
+                  src="<%= check.video_thumbnail %>"
+                  alt="<%= check.video_title %> 썸네일"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                >
+              <% else %>
+                <%# 썸네일 없을 때 플레이스홀더 %>
+                <div class="w-full h-full flex items-center justify-center">
+                  <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              <% end %>
+            </div>
+
+            <%# 카드 하단: 제목 + 채널명 + 점수 %>
+            <div class="p-3 flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug mb-1">
+                  <%= check.video_title.presence || "제목 없음" %>
+                </p>
+                <p class="text-xs text-gray-400">
+                  <%= check.channel&.name %> &middot; <%= relative_time(check.created_at) %>
+                </p>
+              </div>
+              <%# ScoreBadge 컴포넌트 %>
+              <% if check.overall_score %>
+                <div
+                  class="flex-shrink-0 text-sm font-bold <%= score_color_classes(check.overall_score) %> px-2 py-0.5 rounded-md"
+                  aria-label="팩트체크 점수 <%= check.overall_score %>점"
+                >
+                  <%= check.overall_score %>점
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <%# ===== 모바일: 리스트 레이아웃 ===== %>
+      <ul class="md:hidden flex flex-col gap-3" role="list">
+        <% @recent_checks.each do |check| %>
+          <li>
+            <%= link_to report_path(check.id),
+              class: "bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-3 hover:border-blue-100 hover:shadow-sm transition-all",
+              aria: { label: "#{check.video_title} 팩트체크 결과 보기" } do %>
+
+              <%# 썸네일 (작은 사이즈) %>
+              <div class="w-16 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                <% if check.video_thumbnail.present? %>
+                  <img
+                    src="<%= check.video_thumbnail %>"
+                    alt=""
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    aria-hidden="true"
+                  >
+                <% else %>
+                  <div class="w-full h-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                <% end %>
+              </div>
+
+              <%# 텍스트 정보 %>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug">
+                  <%= check.video_title.presence || "제목 없음" %>
+                </p>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  <%= check.channel&.name %> &middot; <%= relative_time(check.created_at) %>
+                </p>
+              </div>
+
+              <%# ScoreBadge 컴포넌트 (모바일) %>
+              <% if check.overall_score %>
+                <div
+                  class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold <%= score_color_classes(check.overall_score) %>"
+                  aria-label="점수 <%= check.overall_score %>점"
+                >
+                  <%= check.overall_score %>
+                </div>
+              <% end %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </section>
 </div>
+
+<%# ===== JavaScript: URL 유효성 검사 + API 요청 ===== %>
+<% content_for :head do %>
+  <script>
+    // 유튜브 URL 유효성 검사 정규식 (youtube.com/watch 또는 youtu.be 형식)
+    const YOUTUBE_URL_REGEX = /^https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?.*v=|youtu\.be\/)[a-zA-Z0-9_-]+/;
+
+    // 모든 url-input 폼에 동일한 이벤트 핸들러를 등록한다.
+    document.querySelectorAll("form[data-action-form='fact-check']").forEach(function(form) {
+      form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const input = form.querySelector("[data-input='youtube-url']");
+        const submitBtn = form.querySelector("[data-action='submit-url']");
+        const errorEl = document.querySelector("[data-url-error]");
+        const url = input ? input.value.trim() : "";
+
+        // 1. 유튜브 URL 형식 유효성 검사
+        if (!YOUTUBE_URL_REGEX.test(url)) {
+          if (errorEl) {
+            errorEl.classList.remove("hidden");
+          }
+          input && input.focus();
+          return;
+        }
+
+        // 유효한 URL이면 에러 숨김
+        if (errorEl) errorEl.classList.add("hidden");
+
+        // 2. 버튼 비활성화 (중복 제출 방지)
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "분석 중...";
+        }
+
+        try {
+          // 3. POST /api/v1/fact_checks 호출
+          const csrfToken = document.querySelector('meta[name="csrf-token"]')
+            ? document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+            : "";
+
+          const response = await fetch("/api/v1/fact_checks", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": csrfToken
+            },
+            body: JSON.stringify({ fact_check: { youtube_url: url } })
+          });
+
+          if (response.ok) {
+            // 4. 응답의 id로 /analyze/:id 이동
+            const data = await response.json();
+            window.location.href = "/analyze/" + data.id;
+          } else if (response.status === 401) {
+            // 인증 필요 시 알림 후 유지
+            alert("로그인이 필요합니다.");
+          } else {
+            const err = await response.json().catch(function() { return {}; });
+            alert(err.detail || "팩트체크 요청에 실패했습니다. 다시 시도해 주세요.");
+          }
+        } catch (networkError) {
+          alert("네트워크 오류가 발생했습니다. 인터넷 연결을 확인해 주세요.");
+        } finally {
+          // 버튼 복원
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>팩트체크';
+          }
+        }
+      });
+
+      // 입력 중에는 에러 메시지를 숨긴다.
+      const inputEl = form.querySelector("[data-input='youtube-url']");
+      if (inputEl) {
+        inputEl.addEventListener("input", function() {
+          const errorEl = document.querySelector("[data-url-error]");
+          if (errorEl) errorEl.classList.add("hidden");
+        });
+      }
+    });
+  </script>
+<% end %>

@@ -1,0 +1,406 @@
+<%# @TASK P2-S2-T1 - 분석 로딩 화면 UI %>
+<%# @SPEC specs/screens/b2c-analyze.yaml %>
+<%# AI 팩트체크 분석 진행 중 표시되는 로딩 화면 %>
+<%# 5단계 스텝퍼, 폴링(5초마다), 완료 시 자동 이동, 실패 시 에러+재시도 %>
+<% content_for :title, "분석 중... — Factis" %>
+
+<%# ===== 메인 컨테이너: 폴링 설정 data 속성 포함 ===== %>
+<div
+  class="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12"
+  data-fact-check-id="<%= @fact_check_id %>"
+  data-poll-interval="5000"
+  data-poll-url="/api/v1/fact_checks/<%= @fact_check_id %>"
+  data-redirect-url="/reports/<%= @fact_check_id %>"
+  id="analyze-container"
+>
+
+  <%# ===== 분석 진행 카드 ===== %>
+  <div class="w-full max-w-md bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+
+    <%# 상단: 타이틀 + 서브 문구 %>
+    <div class="text-center mb-8">
+      <%# 회전하는 로딩 아이콘 (분석 중일 때 표시) %>
+      <div id="analyzing-icon" class="w-14 h-14 mx-auto mb-5">
+        <div class="w-14 h-14 rounded-full border-4 border-blue-100 border-t-blue-800 animate-spin"></div>
+      </div>
+
+      <%# 완료 아이콘 (완료 시 표시, 기본 숨김) %>
+      <div id="completed-icon" class="w-14 h-14 mx-auto mb-5 hidden">
+        <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+          <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      </div>
+
+      <%# 실패 아이콘 (실패 시 표시, 기본 숨김) %>
+      <div id="failed-icon" class="w-14 h-14 mx-auto mb-5 hidden">
+        <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+          <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+      </div>
+
+      <h1 id="status-title" class="text-xl font-bold text-blue-900 mb-1">
+        AI가 팩트체크 중입니다
+      </h1>
+      <p id="status-subtitle" class="text-gray-400 text-sm">
+        빅카인즈 뉴스 빅데이터를 분석하고 있어요 · 최대 2~3분 소요
+      </p>
+    </div>
+
+    <%# ===== 5단계 스텝퍼 (AnalysisProgress 컴포넌트) ===== %>
+    <ol
+      data-component="analysis-progress"
+      class="space-y-3"
+      aria-label="분석 진행 단계"
+    >
+
+      <%# 1단계: 영상 다운로드 %>
+      <li
+        data-step="download"
+        data-step-index="0"
+        class="flex items-center gap-3 p-3 rounded-xl transition-colors duration-300"
+        aria-label="1단계: 영상 다운로드"
+      >
+        <%# 단계 상태 아이콘 %>
+        <div class="step-icon flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center transition-all duration-300">
+          <%# 완료: 체크 아이콘, 진행 중: 점 애니메이션, 대기: 숫자 %>
+          <span class="step-number text-xs font-bold text-gray-400">1</span>
+          <svg class="step-check hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-700 step-label">영상 다운로드</p>
+          <p class="text-xs text-gray-400 step-desc">유튜브 영상을 가져오는 중</p>
+        </div>
+        <%# 진행 중 스피너 (기본 숨김) %>
+        <div class="step-spinner hidden flex-shrink-0">
+          <div class="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin"></div>
+        </div>
+      </li>
+
+      <%# 2단계: 음성 인식 %>
+      <li
+        data-step="transcribe"
+        data-step-index="1"
+        class="flex items-center gap-3 p-3 rounded-xl transition-colors duration-300"
+        aria-label="2단계: 음성 인식"
+      >
+        <div class="step-icon flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center transition-all duration-300">
+          <span class="step-number text-xs font-bold text-gray-400">2</span>
+          <svg class="step-check hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-700 step-label">음성 인식</p>
+          <p class="text-xs text-gray-400 step-desc">AI로 음성을 텍스트로 변환</p>
+        </div>
+        <div class="step-spinner hidden flex-shrink-0">
+          <div class="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin"></div>
+        </div>
+      </li>
+
+      <%# 3단계: 주장 추출 %>
+      <li
+        data-step="extract"
+        data-step-index="2"
+        class="flex items-center gap-3 p-3 rounded-xl transition-colors duration-300"
+        aria-label="3단계: 주장 추출"
+      >
+        <div class="step-icon flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center transition-all duration-300">
+          <span class="step-number text-xs font-bold text-gray-400">3</span>
+          <svg class="step-check hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-700 step-label">주장 추출</p>
+          <p class="text-xs text-gray-400 step-desc">핵심 주장과 발언을 파악</p>
+        </div>
+        <div class="step-spinner hidden flex-shrink-0">
+          <div class="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin"></div>
+        </div>
+      </li>
+
+      <%# 4단계: 뉴스 대조 %>
+      <li
+        data-step="verify"
+        data-step-index="3"
+        class="flex items-center gap-3 p-3 rounded-xl transition-colors duration-300"
+        aria-label="4단계: 뉴스 대조"
+      >
+        <div class="step-icon flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center transition-all duration-300">
+          <span class="step-number text-xs font-bold text-gray-400">4</span>
+          <svg class="step-check hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-700 step-label">뉴스 대조</p>
+          <p class="text-xs text-gray-400 step-desc">빅카인즈 1.1억 건 뉴스와 비교</p>
+        </div>
+        <div class="step-spinner hidden flex-shrink-0">
+          <div class="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin"></div>
+        </div>
+      </li>
+
+      <%# 5단계: 리포트 생성 %>
+      <li
+        data-step="report"
+        data-step-index="4"
+        class="flex items-center gap-3 p-3 rounded-xl transition-colors duration-300"
+        aria-label="5단계: 리포트 생성"
+      >
+        <div class="step-icon flex-shrink-0 w-8 h-8 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center transition-all duration-300">
+          <span class="step-number text-xs font-bold text-gray-400">5</span>
+          <svg class="step-check hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-700 step-label">리포트 생성</p>
+          <p class="text-xs text-gray-400 step-desc">팩트체크 결과를 정리</p>
+        </div>
+        <div class="step-spinner hidden flex-shrink-0">
+          <div class="w-4 h-4 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin"></div>
+        </div>
+      </li>
+
+    </ol>
+
+    <%# ===== 에러 상태 영역 (failed 시 표시, 기본 숨김) ===== %>
+    <div
+      data-component="error-state"
+      id="error-state"
+      class="hidden mt-6 p-4 bg-red-50 border border-red-100 rounded-xl"
+      role="alert"
+      aria-live="polite"
+    >
+      <p class="text-sm font-semibold text-red-700 mb-1">분석 중 오류가 발생했습니다</p>
+      <p id="error-message" class="text-xs text-red-500 mb-4">일시적인 문제일 수 있으니 다시 시도해 주세요.</p>
+      <div class="flex gap-2">
+        <%# 재시도 버튼 %>
+        <a
+          href="/"
+          data-action="retry-analysis"
+          class="flex-1 text-center bg-red-600 text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors"
+        >
+          다시 시도
+        </a>
+        <%# 홈으로 이동 %>
+        <a
+          href="/"
+          class="flex-1 text-center bg-white text-gray-600 text-sm font-semibold py-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+        >
+          홈으로
+        </a>
+      </div>
+    </div>
+
+    <%# ===== 하단: 분석 취소 버튼 (CancelButton 컴포넌트) ===== %>
+    <div id="cancel-area" class="mt-8 text-center">
+      <button
+        type="button"
+        data-action="cancel-analysis"
+        class="text-gray-400 text-sm hover:text-gray-600 transition-colors underline-offset-2 hover:underline"
+        aria-label="분석 취소하고 홈으로 이동"
+      >
+        분석 취소
+      </button>
+    </div>
+
+    <%# 팩트체크 ID 표시 (디버그용) %>
+    <p class="text-gray-200 text-xs text-center mt-4">#<%= @fact_check_id %></p>
+
+  </div>
+</div>
+
+<%# ===== JavaScript: 상태 폴링 + 스텝퍼 업데이트 + 취소 ===== %>
+<% content_for :head do %>
+<script>
+(function() {
+  // 분석 단계와 API 상태값의 매핑 테이블
+  // API status가 analyzing_X이면 해당 스텝이 현재 진행 중임을 의미
+  var STEP_MAP = {
+    "pending":              -1,   // 아직 시작 전
+    "downloading":           0,   // 영상 다운로드 중
+    "transcribing":          1,   // 음성 인식 중
+    "extracting":            2,   // 주장 추출 중
+    "verifying":             3,   // 뉴스 대조 중
+    "generating_report":     4,   // 리포트 생성 중
+    "completed":             5,   // 전체 완료
+    "failed":               -2    // 실패
+  };
+
+  var container       = document.getElementById("analyze-container");
+  var factCheckId     = container ? container.getAttribute("data-fact-check-id") : null;
+  var pollInterval    = parseInt(container ? container.getAttribute("data-poll-interval") : "5000", 10);
+  var redirectUrl     = container ? container.getAttribute("data-redirect-url") : null;
+  var pollUrl         = container ? container.getAttribute("data-poll-url") : null;
+
+  var steps           = document.querySelectorAll("[data-step]");
+  var analyzingIcon   = document.getElementById("analyzing-icon");
+  var completedIcon   = document.getElementById("completed-icon");
+  var failedIcon      = document.getElementById("failed-icon");
+  var statusTitle     = document.getElementById("status-title");
+  var statusSubtitle  = document.getElementById("status-subtitle");
+  var errorState      = document.getElementById("error-state");
+  var errorMessage    = document.getElementById("error-message");
+  var cancelArea      = document.getElementById("cancel-area");
+  var cancelBtn       = document.querySelector("[data-action='cancel-analysis']");
+
+  var pollTimer       = null;  // setInterval 핸들러
+
+  // 스텝을 'completed'(완료), 'active'(진행 중), 'pending'(대기) 상태로 시각 업데이트
+  function updateStepUI(stepEl, state) {
+    var icon      = stepEl.querySelector(".step-icon");
+    var number    = stepEl.querySelector(".step-number");
+    var check     = stepEl.querySelector(".step-check");
+    var spinner   = stepEl.querySelector(".step-spinner");
+
+    // 이전 클래스를 모두 초기화
+    stepEl.classList.remove("bg-blue-50", "bg-green-50");
+    icon.classList.remove("border-blue-600", "bg-blue-600", "border-green-500", "bg-green-500", "border-gray-200");
+
+    if (state === "completed") {
+      // 완료: 초록 배경 + 체크 아이콘
+      stepEl.classList.add("bg-green-50");
+      icon.classList.add("border-green-500", "bg-green-500");
+      number.classList.add("hidden");
+      check.classList.remove("hidden");
+      spinner.classList.add("hidden");
+    } else if (state === "active") {
+      // 진행 중: 파란 배경 + 스피너
+      stepEl.classList.add("bg-blue-50");
+      icon.classList.add("border-blue-600", "bg-blue-600");
+      number.classList.remove("hidden");
+      number.style.color = "#ffffff";
+      check.classList.add("hidden");
+      spinner.classList.remove("hidden");
+    } else {
+      // 대기: 기본 스타일
+      icon.classList.add("border-gray-200");
+      number.classList.remove("hidden");
+      number.style.color = "";
+      check.classList.add("hidden");
+      spinner.classList.add("hidden");
+    }
+  }
+
+  // 현재 API 상태를 받아 스텝퍼 전체를 업데이트한다
+  function updateProgress(apiStatus) {
+    var activeIndex = STEP_MAP[apiStatus];
+
+    // 완료 상태 처리
+    if (activeIndex === 5) {
+      // 모든 단계를 완료로 표시
+      steps.forEach(function(step) { updateStepUI(step, "completed"); });
+      showCompletedState();
+      return;
+    }
+
+    // 실패 상태 처리
+    if (activeIndex === -2) {
+      showFailedState();
+      return;
+    }
+
+    // 일반 진행 중 상태
+    steps.forEach(function(step) {
+      var stepIndex = parseInt(step.getAttribute("data-step-index"), 10);
+      if (stepIndex < activeIndex) {
+        updateStepUI(step, "completed");
+      } else if (stepIndex === activeIndex) {
+        updateStepUI(step, "active");
+      } else {
+        updateStepUI(step, "pending");
+      }
+    });
+  }
+
+  // 완료 상태 UI 전환
+  function showCompletedState() {
+    stopPolling();
+    if (analyzingIcon) analyzingIcon.classList.add("hidden");
+    if (completedIcon) completedIcon.classList.remove("hidden");
+    if (statusTitle) statusTitle.textContent = "분석이 완료되었습니다!";
+    if (statusSubtitle) statusSubtitle.textContent = "리포트 페이지로 이동합니다...";
+    if (cancelArea) cancelArea.classList.add("hidden");
+
+    // 1.5초 후 리포트 페이지로 자동 이동
+    setTimeout(function() {
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      }
+    }, 1500);
+  }
+
+  // 실패 상태 UI 전환
+  function showFailedState(message) {
+    stopPolling();
+    if (analyzingIcon) analyzingIcon.classList.add("hidden");
+    if (failedIcon) failedIcon.classList.remove("hidden");
+    if (statusTitle) statusTitle.textContent = "분석에 실패했습니다";
+    if (statusSubtitle) statusSubtitle.textContent = "아래에서 다시 시도해 주세요.";
+    if (cancelArea) cancelArea.classList.add("hidden");
+    if (errorState) errorState.classList.remove("hidden");
+    if (errorMessage && message) errorMessage.textContent = message;
+  }
+
+  // 폴링 중지
+  function stopPolling() {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  // API 상태 조회 (GET /api/v1/fact_checks/:id)
+  async function fetchStatus() {
+    if (!pollUrl) return;
+    try {
+      var response = await fetch(pollUrl, {
+        headers: { "Accept": "application/json" }
+      });
+
+      if (!response.ok) {
+        // 인증 에러 등 예외 처리
+        if (response.status === 401) {
+          stopPolling();
+          alert("로그인이 필요합니다.");
+          window.location.href = "/";
+        }
+        return;
+      }
+
+      var data = await response.json();
+      updateProgress(data.status);
+    } catch (err) {
+      // 네트워크 오류는 무시하고 다음 폴링에서 재시도
+      console.warn("상태 조회 실패:", err.message);
+    }
+  }
+
+  // 분석 취소 버튼 클릭 핸들러
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", function() {
+      var confirmed = window.confirm("분석을 취소하면 처음부터 다시 시작해야 합니다.\n분석을 취소하시겠습니까?");
+      if (confirmed) {
+        stopPolling();
+        window.location.href = "/";
+      }
+    });
+  }
+
+  // 폴링 시작: 페이지 로드 시 즉시 1회 실행 후 5초마다 반복
+  if (factCheckId && pollUrl) {
+    fetchStatus();  // 최초 즉시 실행
+    pollTimer = setInterval(fetchStatus, pollInterval);
+  }
+})();
+</script>
+<% end %>
