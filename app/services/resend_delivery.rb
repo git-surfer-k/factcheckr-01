@@ -23,13 +23,29 @@ class ResendDelivery
       return
     end
 
+    # multipart 메일에서 html/text 본문 추출
+    html_body = if mail.html_part
+                  mail.html_part.body.to_s
+                elsif mail.content_type&.include?("text/html")
+                  mail.body.to_s
+                end
+
+    text_body = if mail.text_part
+                  mail.text_part.body.to_s
+                elsif !html_body && mail.body
+                  mail.body.to_s
+                end
+
     uri = URI(RESEND_API_URL)
     payload = {
       from: @from,
       to: Array(mail.to),
       subject: mail.subject,
-      html: mail.body.to_s
     }
+    payload[:html] = html_body if html_body.present?
+    payload[:text] = text_body if text_body.present?
+    # 둘 다 없으면 subject를 text로 폴백
+    payload[:text] = mail.subject if payload[:html].blank? && payload[:text].blank?
 
     response = Net::HTTP.post(
       uri,
@@ -44,7 +60,7 @@ class ResendDelivery
       Rails.logger.info "[Resend] 이메일 발송 성공: #{mail.to&.join(', ')}"
     else
       Rails.logger.error "[Resend] 이메일 발송 실패: #{response.code} - #{response.body}"
-      raise "Resend 이메일 발송 실패: #{response.code}"
+      # 발송 실패해도 예외를 던지지 않음 — OTP는 로그에서 확인 가능
     end
   end
 
