@@ -419,7 +419,7 @@ AdminSetting.find_or_create_by!(key: "bigkinds_api_key") { |s| s.value = "" }
 AdminSetting.find_or_create_by!(key: "bigkinds_return_size") { |s| s.value = "10" }
 AdminSetting.find_or_create_by!(key: "bigkinds_search_days") { |s| s.value = "30" }
 AdminSetting.find_or_create_by!(key: "resend_api_key") { |s| s.value = "" }
-AdminSetting.find_or_create_by!(key: "resend_from_email") { |s| s.value = "Factis <noreply@factis.com>" }
+AdminSetting.find_or_create_by!(key: "resend_from_email") { |s| s.value = "Factis <onboarding@resend.dev>" }
 puts "  AdminSetting: #{AdminSetting.count}개"
 puts ""
 puts "  [관리자 로그인] /admin/login"
