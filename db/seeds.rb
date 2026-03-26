@@ -167,6 +167,44 @@ SCENARIOS = {
   ],
 }.freeze
 
+# 채널별 신뢰도 추이 시나리오 (12개월)
+CHANNEL_TRENDS = {
+  # 정치
+  "팩트뉴스TV"   => :stable,        # 꾸준히 높은 신뢰도 유지
+  "정치비평"     => :falling,       # 점점 더 편향되어 하락
+  "국회워치"     => :rising,        # 꾸준히 개선 중
+  "대한민국정치"  => :sudden_drop,   # 음모론 논란으로 최근 급락
+  "정책연구소"   => :stable,        # 학술적 분석으로 안정
+  "선거전략가"   => :volatile,      # 선거 시즌마다 등락
+  "뉴스종합"     => :stable,        # 안정적 종합 뉴스
+  "자유언론"     => :falling,       # 점점 더 자극적으로 하락
+  # 경제
+  "경제돋보기"   => :rising,        # 데이터 기반 분석 강화로 상승
+  "부동산의신"   => :peak_fall,     # 부동산 호황 시 정점 후 하락
+  "주식마스터"   => :volatile,      # 시장 상황에 따라 등락
+  "글로벌경제"   => :stable,        # 국제 경제 분석 꾸준
+  "서민경제TV"   => :rising,        # 생활 밀착형 보도로 상승
+  "코인분석가"   => :sudden_drop,   # 코인 폭락 후 신뢰도 급락
+  # 사회
+  "사회탐사"     => :stable,        # 탐사보도 전문 안정
+  "교육현장"     => :rising,        # 교육 이슈 전문성 강화
+  "환경지킴이"   => :v_recovery,    # 과장 보도 논란 후 회복
+  "범죄실록"     => :falling,       # 선정적 보도 증가로 하락
+  "의료진실"     => :sudden_drop,   # 의료 오보 사건으로 급락
+  "복지뉴스"     => :rising,        # 복지 정책 정확도 향상
+  "이슈분석가"   => :volatile,      # 이슈에 따라 등락
+  "가짜뉴스헌터" => :stable,        # 팩트체크 전문 안정
+  "과학기술TV"   => :sudden_rise,   # AI 시대 주목받으며 급등
+  "시민기자단"   => :v_recovery,    # 초기 혼란 후 안정화
+  # 국제
+  "세계뉴스24"   => :stable,        # 글로벌 뉴스 안정
+  "미국통신"     => :peak_fall,     # 선거 시즌 정점 후 편향 심화
+  "동아시아포커스" => :rising,       # 동아시아 전문성 강화
+  "중동리포트"   => :volatile,      # 분쟁 상황에 따라 등락
+  "유럽브리핑"   => :stable,        # EU 뉴스 안정적
+  "글로벌위기"   => :falling,       # 과장 보도 증가로 하락
+}.freeze
+
 PUBLISHERS = %w[한겨레 조선일보 중앙일보 경향신문 동아일보 한국경제 매일경제 연합뉴스 KBS MBC SBS JTBC YTN].freeze
 REPORTERS = %w[김서연 이준호 박지민 최영수 정하늘 강민서 윤도현 한소희 오세진 임채원].freeze
 
@@ -183,15 +221,28 @@ CHANNELS.each_with_index do |ch, idx|
     c.thumbnail_url = ""
   end
 
-  # 채널 점수 이력 (3개월치)
-  3.times do |m|
-    recorded = (3 - m).months.ago.beginning_of_month
-    variation = rand(-3.0..3.0)
+  # 채널 점수 이력 (12개월치, 채널별 추세 시나리오)
+  trend = CHANNEL_TRENDS[ch[:name]] || :stable
+  base = ch[:trust].to_f
+  12.times do |m|
+    recorded = (12 - m).months.ago.beginning_of_month
+    progress = m / 11.0  # 0.0(12개월전) → 1.0(현재)
+    offset = case trend
+             when :rising      then -15 + (15 * progress)                          # 꾸준히 상승
+             when :falling     then 10 - (15 * progress)                           # 꾸준히 하락
+             when :v_recovery  then (progress < 0.5 ? -20 * (1 - 2*progress) : -20 + 25 * (2*progress - 1))  # V자 반등
+             when :peak_fall   then (progress < 0.6 ? 10 * progress/0.6 : 10 - 18 * (progress - 0.6)/0.4)    # 정점 후 하락
+             when :volatile    then Math.sin(progress * 4 * Math::PI) * 12         # 등락 반복
+             when :sudden_rise then (progress < 0.7 ? rand(-3.0..3.0) : (progress - 0.7) / 0.3 * 20)         # 최근 급등
+             when :sudden_drop then (progress < 0.7 ? rand(-2.0..2.0) : -(progress - 0.7) / 0.3 * 25)        # 최근 급락
+             else rand(-4.0..4.0)                                                  # 안정
+             end
+    score = [[base + offset + rand(-2.0..2.0), 5].max, 98].min.round(2)
     ChannelScore.find_or_create_by!(channel: channel, recorded_at: recorded) do |cs|
-      cs.score = [[ch[:trust] + variation, 0].max, 100].min.round(2)
-      cs.accuracy_rate = [[ch[:trust] + rand(-5.0..5.0), 0].max, 100].min.round(2)
-      cs.source_citation_rate = [[ch[:trust] + rand(-8.0..8.0), 0].max, 100].min.round(2)
-      cs.consistency_score = [[ch[:trust] + rand(-4.0..4.0), 0].max, 100].min.round(2)
+      cs.score = score
+      cs.accuracy_rate = [[score + rand(-5.0..5.0), 5].max, 98].min.round(2)
+      cs.source_citation_rate = [[score + rand(-8.0..8.0), 5].max, 98].min.round(2)
+      cs.consistency_score = [[score + rand(-4.0..4.0), 5].max, 98].min.round(2)
     end
   end
 
