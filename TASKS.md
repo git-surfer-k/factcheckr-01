@@ -197,7 +197,7 @@ flowchart TD
 
 ### P2-R1: FactChecks Resource
 
-#### [ ] P2-R1-T1: FactChecks API 구현
+#### [x] P2-R1-T1: FactChecks API 구현
 - **담당**: backend-specialist
 - **리소스**: fact_checks
 - **엔드포인트**:
@@ -212,7 +212,7 @@ flowchart TD
 
 ### P2-R2: Claims Resource
 
-#### [ ] P2-R2-T1: Claims API 구현
+#### [x] P2-R2-T1: Claims API 구현
 - **담당**: backend-specialist
 - **리소스**: claims
 - **엔드포인트**:
@@ -225,7 +225,7 @@ flowchart TD
 
 ### P2-R3: NewsSources Resource
 
-#### [ ] P2-R3-T1: NewsSources API 구현
+#### [x] P2-R3-T1: NewsSources API 구현
 - **담당**: backend-specialist
 - **리소스**: news_sources
 - **엔드포인트**:
@@ -238,7 +238,7 @@ flowchart TD
 
 ### P2-R4: AI 분석 파이프라인
 
-#### [ ] P2-R4-T1: AI 파이프라인 구현
+#### [x] P2-R4-T1: AI 파이프라인 구현
 - **담당**: backend-specialist
 - **서버**: FastAPI (ai_server/)
 - **엔드포인트**:
@@ -252,7 +252,7 @@ flowchart TD
 
 ### P2-S1: 홈 화면
 
-#### [ ] P2-S1-T1: 홈 화면 UI 구현
+#### [x] P2-S1-T1: 홈 화면 UI 구현
 - **담당**: frontend-specialist
 - **화면**: / (b2c-home.yaml)
 - **컴포넌트**: UrlInput (search-form), RecentChecks (list), BottomNav
@@ -264,7 +264,7 @@ flowchart TD
 - **데모 상태**: loading, empty, normal
 - **참조**: `design/screens/web-home.png`, `design/screens/b2c-home.png`
 
-#### [ ] P2-S1-V: 홈 화면 연결점 검증
+#### [x] P2-S1-V: 홈 화면 연결점 검증
 - **담당**: test-specialist
 - **화면**: /
 - **검증 항목**:
@@ -276,7 +276,7 @@ flowchart TD
 
 ### P2-S2: 분석 로딩 화면
 
-#### [ ] P2-S2-T1: 분석 로딩 화면 UI 구현
+#### [x] P2-S2-T1: 분석 로딩 화면 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /analyze/:id (b2c-analyze.yaml)
 - **컴포넌트**: AnalysisProgress (stepper), CancelButton
@@ -289,7 +289,7 @@ flowchart TD
 
 ### P2-S3: 리포트 상세 화면
 
-#### [ ] P2-S3-T1: 리포트 상세 화면 UI 구현
+#### [x] P2-S3-T1: 리포트 상세 화면 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /reports/:id (b2c-report-detail.yaml)
 - **컴포넌트**: ReportHeader (summary-card), ReportTabs (tabs, 5개), ContentSummary, FactScoreAnalysis (chart), ClaimList (list), NewsLinks (list), ChannelInfo (card), DownloadButton, AiDisclaimer (alert)
@@ -301,7 +301,7 @@ flowchart TD
 - **데모 상태**: loading, normal(각 탭)
 - **참조**: `design/screens/web-report-detail.png`, `design/screens/b2c-report-detail.png`
 
-#### [ ] P2-S3-V: 리포트 상세 연결점 검증
+#### [x] P2-S3-V: 리포트 상세 연결점 검증
 - **담당**: test-specialist
 - **화면**: /reports/:id
 - **검증 항목**:
@@ -315,7 +315,7 @@ flowchart TD
 
 ### P2-S4: 다운로드 형식 선택 (모달)
 
-#### [ ] P2-S4-T1: 다운로드 모달 UI 구현
+#### [x] P2-S4-T1: 다운로드 모달 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /reports/:id/download (b2c-download-modal.yaml)
 - **컴포넌트**: DownloadModal (modal — PDF/MD/DOCX/HWP 선택), SubscriptionNotice (alert)
