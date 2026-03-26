@@ -13,7 +13,7 @@ module Admin
     ALLOWED_KEYS = %w[
       openai_api_key openai_model
       bigkinds_api_key bigkinds_return_size bigkinds_search_days
-      resend_api_key resend_from_email
+      resend_api_key resend_from_email resend_test_email
     ].freeze
 
     # 민감 정보 키 (마스킹 처리 대상)
@@ -52,12 +52,15 @@ module Admin
         redirect_to admin_settings_path and return
       end
 
+      # 테스트 수신자: Resend 테스트 모드에서는 계정 소유자 이메일만 가능
+      test_to = AdminSetting.get("resend_test_email", admin_email)
+
       begin
         # Resend API로 직접 테스트 이메일 발송
         uri = URI("https://api.resend.com/emails")
         payload = {
           from: from_email,
-          to: [admin_email],
+          to: [test_to],
           subject: "[Factis] 테스트 이메일",
           html: "<h2>Factis 관리자 테스트 이메일</h2><p>이 메일이 정상적으로 수신되었다면 Resend 설정이 올바르게 구성된 것입니다.</p><p>발송 시각: #{Time.current}</p>"
         }
@@ -72,7 +75,7 @@ module Admin
         )
 
         if response.is_a?(Net::HTTPSuccess)
-          flash[:notice] = "테스트 이메일이 #{admin_email}로 발송되었습니다."
+          flash[:notice] = "테스트 이메일이 #{test_to}로 발송되었습니다."
         else
           flash[:alert] = "이메일 발송 실패: #{response.code} - #{response.body}"
         end
