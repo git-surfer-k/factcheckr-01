@@ -10,7 +10,7 @@ class AdminTest < ActionDispatch::IntegrationTest
   # ============================================================
   setup do
     # 기본 관리자 자격 증명
-    @admin_email = ENV.fetch("ADMIN_EMAIL", "admin@factis.com")
+    @admin_email = ENV.fetch("ADMIN_EMAIL", "blek.park@gmail.com")
     @admin_password = ENV.fetch("ADMIN_PASSWORD", "factis-admin-2026")
 
     # 테스트 사용자 생성

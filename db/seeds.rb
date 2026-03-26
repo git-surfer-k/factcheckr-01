@@ -423,5 +423,5 @@ AdminSetting.find_or_create_by!(key: "resend_from_email") { |s| s.value = "Facti
 puts "  AdminSetting: #{AdminSetting.count}개"
 puts ""
 puts "  [관리자 로그인] /admin/login"
-puts "    이메일: #{ENV.fetch('ADMIN_EMAIL', 'admin@factis.com')}"
+puts "    이메일: #{ENV.fetch('ADMIN_EMAIL', 'blek.park@gmail.com')}"
 puts "    비밀번호: #{ENV.fetch('ADMIN_PASSWORD', 'factis-admin-2026')}"

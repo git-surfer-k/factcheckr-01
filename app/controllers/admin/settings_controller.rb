@@ -45,7 +45,7 @@ module Admin
     def test_email
       api_key = AdminSetting.get("resend_api_key", ENV["RESEND_API_KEY"])
       from_email = AdminSetting.get("resend_from_email", "Factis <noreply@factis.com>")
-      admin_email = ENV.fetch("ADMIN_EMAIL", "admin@factis.com")
+      admin_email = ENV.fetch("ADMIN_EMAIL", "blek.park@gmail.com")
 
       if api_key.blank?
         flash[:alert] = "Resend API Key가 설정되지 않았습니다."
