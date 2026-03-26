@@ -1,7 +1,222 @@
-<%# @TASK P1-S0-T1 - 채널 랭킹 페이지 뷰 (플레이스홀더) %>
+<%# @TASK P3-S2-T1 - 채널 랭킹 화면 UI %>
+<%# @SPEC specs/screens/b2c-ranking.yaml %>
+<%# 디자인 참조: design/screens/web-ranking.png, design/screens/b2c-ranking.png %>
 <% content_for :title, "채널 랭킹 — Factis" %>
 
-<div class="min-h-screen bg-gray-50 px-4 pt-6 pb-24 md:pb-8">
-  <h1 class="text-2xl font-bold text-blue-900 mb-6">채널 랭킹</h1>
-  <p class="text-gray-400 text-sm text-center py-16">채널 신뢰도 랭킹이 여기에 표시됩니다.</p>
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-4xl mx-auto px-4 pt-6 pb-24 md:pb-12">
+
+    <%# ===== 페이지 헤더 ===== %>
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold text-blue-900">채널 랭킹</h1>
+
+      <%# 검색 아이콘 (모바일) / 검색 입력 (데스크톱) %>
+      <div class="hidden md:flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 w-48">
+        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <span class="text-sm text-gray-400">채널 검색</span>
+      </div>
+
+      <%# 모바일 검색 버튼 %>
+      <button
+        class="md:hidden w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+        aria-label="채널 검색"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </button>
+    </div>
+
+    <%# ===== CategoryTabs 컴포넌트 ===== %>
+    <%# 전체/정치/경제/사회/국제 카테고리 탭 %>
+    <nav
+      data-component="category-tabs"
+      class="flex gap-2 mb-6 overflow-x-auto pb-1 scrollbar-hide"
+      aria-label="카테고리 탭"
+    >
+      <%# 전체 탭 %>
+      <% is_all_active = @selected_category.blank? %>
+      <%= link_to ranking_path,
+        class: "flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-colors #{is_all_active ? 'bg-blue-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-700'}",
+        "data-tab-active": is_all_active.to_s,
+        aria: { label: "전체 카테고리" } do %>
+        전체
+      <% end %>
+
+      <%# 카테고리별 탭 %>
+      <% @categories.each do |category| %>
+        <% is_active = @selected_category == category %>
+        <%= link_to ranking_path(category: category),
+          class: "flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-colors #{is_active ? 'bg-blue-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-700'}",
+          "data-tab-active": is_active.to_s,
+          aria: { label: "#{category} 카테고리" } do %>
+          <%= category %>
+        <% end %>
+      <% end %>
+    </nav>
+
+    <%# ===== RankingList 컴포넌트 ===== %>
+    <% if @channels.empty? %>
+      <%# ===== 빈 상태 (Empty State) ===== %>
+      <div
+        data-component="ranking-empty"
+        class="flex flex-col items-center justify-center py-20 text-center"
+        aria-label="채널 없음"
+      >
+        <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <p class="text-gray-500 text-sm font-medium mb-1">
+          <%= @selected_category.present? ? "#{@selected_category} 카테고리에 등록된 채널이 없어요" : "아직 등록된 채널이 없어요" %>
+        </p>
+        <p class="text-gray-400 text-xs">팩트체크가 완료되면 채널 랭킹이 집계됩니다</p>
+      </div>
+
+    <% else %>
+      <%# ===== 데스크톱: 2열 그리드 레이아웃 ===== %>
+      <ul
+        data-component="ranking-list"
+        class="hidden md:grid md:grid-cols-2 gap-3"
+        role="list"
+        aria-label="채널 랭킹 목록"
+      >
+        <% @channels.each_with_index do |channel, index| %>
+          <li>
+            <%# 채널 랭킹 항목: 클릭 시 /channels/:id 이동 %>
+            <%= link_to "/channels/#{channel.id}",
+              data: { component: "ranking-item" },
+              class: "flex items-center gap-4 bg-white rounded-xl border border-gray-100 px-4 py-4 hover:border-blue-100 hover:shadow-sm transition-all group",
+              aria: { label: "#{channel.name} 채널 상세 보기" } do %>
+
+              <%# 순위 번호 %>
+              <span
+                data-channel-rank
+                class="flex-shrink-0 w-6 text-center text-sm font-bold text-blue-800 tabular-nums"
+                aria-label="순위 #{index + 1}위"
+              >
+                <%= index + 1 %>
+              </span>
+
+              <%# 채널 썸네일 %>
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+                <% if channel.thumbnail_url.present? %>
+                  <img
+                    src="<%= channel.thumbnail_url %>"
+                    alt="<%= channel.name %> 채널 썸네일"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                  >
+                <% else %>
+                  <%# 썸네일 없을 때 이니셜 플레이스홀더 %>
+                  <div class="w-full h-full flex items-center justify-center bg-blue-100 text-blue-700 text-xs font-bold">
+                    <%= channel.name.first %>
+                  </div>
+                <% end %>
+              </div>
+
+              <%# 채널 정보 (채널명 + 카테고리 + 검증 수) %>
+              <div class="flex-1 min-w-0">
+                <p
+                  data-channel-name
+                  class="text-sm font-semibold text-gray-800 truncate leading-snug"
+                >
+                  <%= channel.name %>
+                </p>
+                <p
+                  data-channel-checks
+                  class="text-xs text-gray-400 mt-0.5"
+                >
+                  <%= channel.category %> · 검증 <%= channel.total_checks %>건
+                </p>
+              </div>
+
+              <%# ScoreBadge: 신뢰도 점수 %>
+              <% score = channel.trust_score.to_i %>
+              <div
+                data-component="score-badge"
+                class="flex-shrink-0 min-w-[2.5rem] text-center text-sm font-bold px-2 py-1 rounded-lg <%= score_color_classes(score) %>"
+                aria-label="신뢰도 점수 #{score}점"
+              >
+                <%= score %>
+              </div>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+
+      <%# ===== 모바일: 단일 열 리스트 레이아웃 ===== %>
+      <ul
+        data-component="ranking-list"
+        class="md:hidden flex flex-col gap-3"
+        role="list"
+        aria-label="채널 랭킹 목록"
+      >
+        <% @channels.each_with_index do |channel, index| %>
+          <li>
+            <%= link_to "/channels/#{channel.id}",
+              data: { component: "ranking-item" },
+              class: "flex items-center gap-4 bg-white rounded-xl border border-gray-100 px-4 py-4 hover:border-blue-100 hover:shadow-sm transition-all",
+              aria: { label: "#{channel.name} 채널 상세 보기" } do %>
+
+              <%# 순위 번호 %>
+              <span
+                data-channel-rank
+                class="flex-shrink-0 w-6 text-center text-sm font-bold text-blue-800 tabular-nums"
+                aria-label="순위 #{index + 1}위"
+              >
+                <%= index + 1 %>
+              </span>
+
+              <%# 채널 썸네일 %>
+              <div class="flex-shrink-0 w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+                <% if channel.thumbnail_url.present? %>
+                  <img
+                    src="<%= channel.thumbnail_url %>"
+                    alt="<%= channel.name %> 채널 썸네일"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                  >
+                <% else %>
+                  <div class="w-full h-full flex items-center justify-center bg-blue-100 text-blue-700 text-sm font-bold">
+                    <%= channel.name.first %>
+                  </div>
+                <% end %>
+              </div>
+
+              <%# 채널 정보 %>
+              <div class="flex-1 min-w-0">
+                <p
+                  data-channel-name
+                  class="text-sm font-semibold text-gray-800 truncate"
+                >
+                  <%= channel.name %>
+                </p>
+                <p
+                  data-channel-checks
+                  class="text-xs text-gray-400 mt-0.5"
+                >
+                  <%= channel.category %> · 검증 <%= channel.total_checks %>건
+                </p>
+              </div>
+
+              <%# ScoreBadge %>
+              <% score = channel.trust_score.to_i %>
+              <div
+                data-component="score-badge"
+                class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold <%= score_color_classes(score) %>"
+                aria-label="신뢰도 점수 #{score}점"
+              >
+                <%= score %>
+              </div>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+
+  </div>
 </div>
