@@ -1,5 +1,5 @@
-<%# 내 팩트체크 기록 — 로그인 사용자 전용 %>
-<% content_for :title, "내 기록 — Factis" %>
+<%# 전체 팩트체크 탐색 — 더보기 %>
+<% content_for :title, "팩트체크 둘러보기 — Factis" %>
 
 <div class="min-h-screen bg-gray-50">
   <div class="max-w-6xl mx-auto px-4 pt-6 pb-24 md:pb-12">
@@ -7,10 +7,12 @@
     <%# ===== 페이지 헤더 ===== %>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-blue-900">내 기록</h1>
+        <h1 class="text-2xl font-bold text-blue-900">팩트체크 둘러보기</h1>
         <p class="text-sm text-gray-400 mt-1">총 <%= @total_count %>건</p>
       </div>
-      <span class="text-sm text-gray-400"><%= current_web_user.email %></span>
+      <% if logged_in? %>
+        <span class="text-sm text-gray-400"><%= current_web_user.email %></span>
+      <% end %>
     </div>
 
     <% if @fact_checks.any? %>
@@ -98,7 +100,7 @@
         <%# ===== 더보기 버튼 ===== %>
         <% if @has_more %>
           <div class="mt-8 text-center">
-            <%= link_to history_path(count: @load_count + @per_load),
+            <%= link_to explore_path(count: @load_count + @per_load),
               class: "inline-flex items-center gap-2 px-8 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-all" do %>
               더보기
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

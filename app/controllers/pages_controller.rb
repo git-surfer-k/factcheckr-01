@@ -35,20 +35,27 @@ class PagesController < ActionController::Base
     end
   end
 
-  # 팩트체크 기록 페이지 (더보기)
-  # 로그인 시 내 기록, 비로그인 시 전체 완료된 팩트체크 표시
-  # 페이지당 12개 (3x4 그리드), 페이지네이션
+  # 내 팩트체크 기록 페이지 — 로그인 필수
   def history
-    # "더보기" 방식: limit을 누적으로 늘려서 표시
+    unless logged_in?
+      redirect_to auth_path and return
+    end
+
     @load_count = [(params[:count] || 12).to_i, 300].min
     @per_load = 12
 
-    base_query = if logged_in?
-      current_web_user.fact_checks.includes(:channel)
-    else
-      FactCheck.includes(:channel).where(status: :completed)
-    end
+    base_query = current_web_user.fact_checks.includes(:channel)
+    @total_count = base_query.count
+    @fact_checks = base_query.order(created_at: :desc).limit(@load_count).to_a
+    @has_more = @load_count < @total_count
+  end
 
+  # 전체 팩트체크 더보기 (로그인 불필요) — 홈 하단 '더보기'에서 연결
+  def explore
+    @load_count = [(params[:count] || 12).to_i, 300].min
+    @per_load = 12
+
+    base_query = FactCheck.includes(:channel).where(status: :completed)
     @total_count = base_query.count
     @fact_checks = base_query.order(created_at: :desc).limit(@load_count).to_a
     @has_more = @load_count < @total_count

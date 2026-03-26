@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   root "pages#home"
   get "/ranking",        to: "pages#ranking",  as: :ranking
   get "/history",        to: "pages#history",  as: :history
+  get "/explore",        to: "pages#explore",  as: :explore
   get "/settings",       to: "pages#settings", as: :settings
   get "/auth",            to: "pages#auth",     as: :auth
   get "/analyze/:id",    to: "pages#analyze",  as: :analyze
