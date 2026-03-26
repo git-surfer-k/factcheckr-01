@@ -1,0 +1,44 @@
+<%# @TASK P1-S0-T1 - 홈 페이지 뷰 (레이아웃 확인용 플레이스홀더) %>
+<% content_for :title, "Factis — AI 팩트체크" %>
+
+<div class="min-h-screen bg-gray-50">
+  <%# 히어로 섹션 %>
+  <div class="pt-16 pb-12 text-center px-4">
+    <h1 class="text-3xl md:text-5xl font-bold text-blue-900 mb-4">
+      유튜브 영상, 사실일까?
+    </h1>
+    <p class="text-gray-500 text-base md:text-lg mb-8">
+      AI가 빅카인즈 뉴스 빅데이터로 팩트체크합니다
+    </p>
+
+    <%# URL 입력 영역 %>
+    <div class="max-w-2xl mx-auto flex gap-2 bg-white rounded-xl border border-gray-200 p-2 shadow-sm">
+      <div class="flex items-center pl-3 text-gray-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+      </div>
+      <input
+        type="url"
+        placeholder="유튜브 URL을 입력하세요"
+        class="flex-1 py-3 px-2 text-gray-700 bg-transparent outline-none text-sm md:text-base"
+        aria-label="유튜브 URL 입력"
+      >
+      <button
+        class="bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-blue-900 transition-colors"
+        aria-label="팩트체크 시작"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        팩트체크
+      </button>
+    </div>
+  </div>
+
+  <%# 최근 팩트체크 섹션 (플레이스홀더) %>
+  <div class="max-w-6xl mx-auto px-4 pb-24 md:pb-8">
+    <h2 class="text-sm font-medium text-gray-500 mb-4">최근 팩트체크</h2>
+    <p class="text-gray-400 text-sm text-center py-16">팩트체크 결과가 여기에 표시됩니다.</p>
+  </div>
+</div>

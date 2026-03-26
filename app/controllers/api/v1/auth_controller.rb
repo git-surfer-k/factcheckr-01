@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 # @TASK P0-T0.4 - Email OTP 인증 컨트롤러
+# @TASK P1-R1-T1 - user_type 필드 추가
 # @SPEC docs/planning/02-trd.md#인증-API
 module Api
   module V1
@@ -8,6 +9,8 @@ module Api
     # 이메일로 6자리 OTP를 발송하고, 검증 후 세션을 생성한다.
     # 신규 사용자는 OTP 검증 시 자동 가입된다.
     class AuthController < ApplicationController
+      include UserSerializable
+
       skip_before_action :authenticate_user!, only: %i[request_otp verify_otp]
 
       # POST /api/v1/auth/request_otp
@@ -94,17 +97,6 @@ module Api
         render json: { message: "로그아웃 되었습니다." }
       end
 
-      private
-
-      def user_response(user)
-        {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          is_active: user.is_active,
-          created_at: user.created_at
-        }
-      end
     end
   end
 end

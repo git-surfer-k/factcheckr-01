@@ -1,3 +1,4 @@
+/* @TASK P1-S0-T1 - 공통 레이아웃 스타일 */
 /* Tailwind CSS v4 - CSS-first configuration */
 /* No tailwind.config.js needed */
 
@@ -5,8 +6,8 @@
 
 /* Custom theme configuration using CSS */
 @theme {
-  /* Extend or override default theme values */
-  --font-family-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  /* Pretendard 폰트 (한글 최적화) + Inter (영문) */
+  --font-family-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif, "Apple Color Emoji";
   --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
 
   /* Custom colors example */
@@ -27,6 +28,11 @@
   max-width: 48rem;
   margin-inline: auto;
   padding-inline: 1rem;
+}
+
+/* iOS 하단 Safe Area 지원 (홈 인디케이터 영역 보호) */
+@utility safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 /* Form styles for authentication */
