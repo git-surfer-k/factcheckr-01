@@ -1,0 +1,57 @@
+# frozen_string_literal: true
+
+require "net/http"
+require "json"
+
+# @TASK ADMIN-T2 - Resend 이메일 발송 서비스
+# @SPEC CLAUDE.md#Resend-이메일-통합
+# Resend API를 사용하여 이메일을 발송하는 커스텀 ActionMailer delivery method.
+# AdminSetting에서 API 키를 조회하고, 없으면 환경변수를 폴백으로 사용한다.
+class ResendDelivery
+  RESEND_API_URL = "https://api.resend.com/emails"
+
+  def initialize(settings = {})
+    @api_key = settings[:api_key] || AdminSetting.get("resend_api_key", ENV["RESEND_API_KEY"])
+    @from = settings[:from] || AdminSetting.get("resend_from_email", "Factis <noreply@factis.com>")
+  end
+
+  # ActionMailer가 호출하는 발송 메서드
+  def deliver!(mail)
+    # API 키가 없으면 발송 스킵 (개발환경 등)
+    if api_key.blank?
+      Rails.logger.warn "[Resend] API 키가 설정되지 않아 이메일 발송을 건너뜁니다."
+      return
+    end
+
+    uri = URI(RESEND_API_URL)
+    payload = {
+      from: @from,
+      to: Array(mail.to),
+      subject: mail.subject,
+      html: mail.body.to_s
+    }
+
+    response = Net::HTTP.post(
+      uri,
+      payload.to_json,
+      {
+        "Authorization" => "Bearer #{api_key}",
+        "Content-Type" => "application/json"
+      }
+    )
+
+    if response.is_a?(Net::HTTPSuccess)
+      Rails.logger.info "[Resend] 이메일 발송 성공: #{mail.to&.join(', ')}"
+    else
+      Rails.logger.error "[Resend] 이메일 발송 실패: #{response.code} - #{response.body}"
+      raise "Resend 이메일 발송 실패: #{response.code}"
+    end
+  end
+
+  private
+
+  # 발송 시점에 최신 API 키를 조회 (설정이 변경될 수 있으므로)
+  def api_key
+    @api_key.presence || AdminSetting.get("resend_api_key", ENV["RESEND_API_KEY"])
+  end
+end

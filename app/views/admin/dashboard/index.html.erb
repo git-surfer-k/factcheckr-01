@@ -1,0 +1,126 @@
+<%# @TASK ADMIN-T1 - 관리자 대시보드 페이지 %>
+<% content_for(:title) { "대시보드" } %>
+
+<div class="p-6 lg:p-8">
+  <%# 페이지 제목 %>
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-white">대시보드</h1>
+    <p class="text-sm text-gray-400 mt-1">Factis 시스템 현황을 한눈에 확인합니다.</p>
+  </div>
+
+  <%# 전체 통계 카드 4개 %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <%# 전체 사용자 %>
+    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm text-gray-400">전체 사용자</span>
+        <div class="w-10 h-10 rounded-lg bg-blue-900/50 flex items-center justify-center">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-white"><%= @total_users %></p>
+    </div>
+
+    <%# 팩트체크 수 %>
+    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm text-gray-400">팩트체크</span>
+        <div class="w-10 h-10 rounded-lg bg-green-900/50 flex items-center justify-center">
+          <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-white"><%= @total_fact_checks %></p>
+    </div>
+
+    <%# 채널 수 %>
+    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm text-gray-400">채널</span>
+        <div class="w-10 h-10 rounded-lg bg-purple-900/50 flex items-center justify-center">
+          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-white"><%= @total_channels %></p>
+    </div>
+
+    <%# 오늘 신규 %>
+    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm text-gray-400">오늘 신규 사용자</span>
+        <div class="w-10 h-10 rounded-lg bg-amber-900/50 flex items-center justify-center">
+          <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+        </div>
+      </div>
+      <p class="text-3xl font-bold text-white"><%= @today_new_users %></p>
+    </div>
+  </div>
+
+  <%# 하단 2열: 최근 사용자 + 최근 팩트체크 %>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <%# 최근 가입 사용자 5명 %>
+    <div class="bg-gray-800 rounded-xl border border-gray-700">
+      <div class="px-5 py-4 border-b border-gray-700">
+        <h2 class="text-lg font-semibold text-white">최근 가입 사용자</h2>
+      </div>
+      <div class="divide-y divide-gray-700">
+        <% @recent_users.each do |user| %>
+          <div class="px-5 py-3 flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-white"><%= user.name || "(이름 없음)" %></p>
+              <p class="text-xs text-gray-400"><%= user.email %></p>
+            </div>
+            <div class="text-right">
+              <span class="inline-block px-2 py-0.5 text-xs rounded-full <%= user.b2b? ? 'bg-blue-900 text-blue-300' : 'bg-gray-700 text-gray-300' %>">
+                <%= user.user_type.upcase %>
+              </span>
+              <p class="text-xs text-gray-500 mt-0.5"><%= user.created_at.strftime("%Y-%m-%d") %></p>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @recent_users.empty? %>
+          <div class="px-5 py-8 text-center text-gray-500 text-sm">가입된 사용자가 없습니다.</div>
+        <% end %>
+      </div>
+      <div class="px-5 py-3 border-t border-gray-700">
+        <%= link_to "전체 보기 →", admin_users_path, class: "text-sm text-indigo-400 hover:text-indigo-300" %>
+      </div>
+    </div>
+
+    <%# 최근 팩트체크 5건 %>
+    <div class="bg-gray-800 rounded-xl border border-gray-700">
+      <div class="px-5 py-4 border-b border-gray-700">
+        <h2 class="text-lg font-semibold text-white">최근 팩트체크</h2>
+      </div>
+      <div class="divide-y divide-gray-700">
+        <% @recent_fact_checks.each do |fc| %>
+          <div class="px-5 py-3">
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-sm font-medium text-white truncate max-w-[60%]">
+                <%= fc.channel&.name || "(채널 없음)" %>
+              </p>
+              <% status_class = case fc.status
+                 when 'completed' then 'bg-green-900 text-green-300'
+                 when 'analyzing' then 'bg-yellow-900 text-yellow-300'
+                 when 'pending' then 'bg-gray-700 text-gray-300'
+                 when 'failed' then 'bg-red-900 text-red-300'
+                 else 'bg-gray-700 text-gray-300'
+                 end %>
+              <span class="inline-block px-2 py-0.5 text-xs rounded-full <%= status_class %>">
+                <%= fc.status %>
+              </span>
+            </div>
+            <p class="text-xs text-gray-400 truncate"><%= fc.youtube_url %></p>
+            <p class="text-xs text-gray-500 mt-0.5">
+              <%= fc.user&.email || "(사용자 없음)" %> · <%= fc.created_at.strftime("%Y-%m-%d %H:%M") %>
+            </p>
+          </div>
+        <% end %>
+
+        <% if @recent_fact_checks.empty? %>
+          <div class="px-5 py-8 text-center text-gray-500 text-sm">팩트체크 기록이 없습니다.</div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

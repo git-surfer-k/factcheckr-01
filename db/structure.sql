@@ -58,7 +58,10 @@ FOREIGN KEY ("user_id")
   REFERENCES "users" ("id")
 );
 CREATE INDEX "index_b2b_reports_on_user_id" ON "b2b_reports" ("user_id") /*application='Factis01'*/;
+CREATE TABLE IF NOT EXISTS "admin_settings" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "key" varchar NOT NULL, "value" text, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
+CREATE UNIQUE INDEX "index_admin_settings_on_key" ON "admin_settings" ("key") /*application='Factis01'*/;
 INSERT INTO "schema_migrations" (version) VALUES
+('20240101000011'),
 ('20240101000010'),
 ('20240101000009'),
 ('20240101000008'),

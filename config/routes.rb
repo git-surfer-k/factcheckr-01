@@ -10,6 +10,7 @@
 # @TASK P3-R2-T1 - ChannelScores API 라우트 (channels 하위 nested resource)
 # @TASK P3-R3-T1 - ChannelTags API 라우트 (channels 하위 nested resource)
 # @TASK P5-R1-T1 - B2B Reports API 라우트 (b2b 네임스페이스)
+# @TASK ADMIN-T1 - 관리자 페이지 라우트
 Rails.application.routes.draw do
   # 웹 페이지 라우트 (PagesController)
   root "pages#home"
@@ -76,6 +77,25 @@ Rails.application.routes.draw do
     # 리포트 상세 페이지 (/b2b/reports/:id) - new보다 아래에 위치해야 충돌 없음
     get  "/reports/:id",  to: "reports#show",     as: :report
     get  "/billing",      to: "billing#index",    as: :billing
+  end
+
+  # @TASK ADMIN-T1 - 관리자 페이지 namespace 라우트
+  namespace :admin do
+    get  "/login",  to: "sessions#new",     as: :login
+    post "/login",  to: "sessions#create"
+    delete "/logout", to: "sessions#destroy", as: :logout
+
+    root "dashboard#index"  # /admin → 대시보드
+
+    resources :users, only: [:index, :show] do
+      member do
+        patch :toggle_active
+      end
+    end
+
+    resource :settings, only: [:show, :update] do
+      post :test_email, on: :member
+    end
   end
 
   # 동적 썸네일 생성

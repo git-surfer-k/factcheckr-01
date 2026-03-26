@@ -409,3 +409,19 @@ puts ""
 puts "  [로그인 방법] 브라우저 콘솔에서 실행:"
 puts "    document.cookie = 'session_token=토큰값; path=/'"
 puts "    location.reload()"
+
+# ---------- 관리자 설정 초기값 ----------
+puts ""
+puts "=== 관리자 설정 초기값 생성 ==="
+AdminSetting.find_or_create_by!(key: "openai_api_key") { |s| s.value = "" }
+AdminSetting.find_or_create_by!(key: "openai_model") { |s| s.value = "gpt-4o" }
+AdminSetting.find_or_create_by!(key: "bigkinds_api_key") { |s| s.value = "" }
+AdminSetting.find_or_create_by!(key: "bigkinds_return_size") { |s| s.value = "10" }
+AdminSetting.find_or_create_by!(key: "bigkinds_search_days") { |s| s.value = "30" }
+AdminSetting.find_or_create_by!(key: "resend_api_key") { |s| s.value = "" }
+AdminSetting.find_or_create_by!(key: "resend_from_email") { |s| s.value = "Factis <noreply@factis.com>" }
+puts "  AdminSetting: #{AdminSetting.count}개"
+puts ""
+puts "  [관리자 로그인] /admin/login"
+puts "    이메일: #{ENV.fetch('ADMIN_EMAIL', 'admin@factis.com')}"
+puts "    비밀번호: #{ENV.fetch('ADMIN_PASSWORD', 'factis-admin-2026')}"
