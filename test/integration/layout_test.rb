@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 # @TASK P1-S0-T1 - 공통 레이아웃 UI 테스트
+# @TASK P4-S1-T1, P4-S2-T1 - 내기록/설정 페이지 인증 적용 후 테스트 업데이트
 # 웹 상단 네비게이션과 모바일 하단 탭이 올바르게 렌더링되는지 확인
 require "test_helper"
 
@@ -17,16 +18,32 @@ class LayoutTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  # 내기록 페이지가 정상적으로 응답하는지 확인
+  # 내기록 페이지: 인증 필수이므로 로그인 상태에서 확인
+  # 병렬 테스트 충돌 방지를 위해 랜덤 이메일 사용
   test "내기록 페이지 접근 가능" do
+    user = User.create!(email: "layout_history_#{SecureRandom.hex(4)}@example.com", user_type: :b2c, is_active: true)
+    web_session = Session.create!(user: user)
+    cookies[:session_token] = web_session.token
+
     get history_path
     assert_response :success
+
+    Session.where(user: user).delete_all
+    User.where(id: user.id).delete_all
   end
 
-  # 설정 페이지가 정상적으로 응답하는지 확인
+  # 설정 페이지: 인증 필수이므로 로그인 상태에서 확인
+  # 병렬 테스트 충돌 방지를 위해 랜덤 이메일 사용
   test "설정 페이지 접근 가능" do
+    user = User.create!(email: "layout_settings_#{SecureRandom.hex(4)}@example.com", user_type: :b2c, is_active: true)
+    web_session = Session.create!(user: user)
+    cookies[:session_token] = web_session.token
+
     get settings_path
     assert_response :success
+
+    Session.where(user: user).delete_all
+    User.where(id: user.id).delete_all
   end
 
   # 레이아웃에 로고가 포함되어 있는지 확인
