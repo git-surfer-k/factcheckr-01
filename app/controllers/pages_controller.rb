@@ -11,12 +11,12 @@ class PagesController < ActionController::Base
   # 레이아웃 명시 지정 (application.html.erb 사용)
   layout "application"
 
-  # 홈 페이지: 인증된 사용자는 최근 팩트체크 목록을 표시
+  # 홈 페이지: 로그인 시 내 팩트체크, 비로그인 시 전체 최근 팩트체크 표시
   def home
     @recent_checks = if logged_in?
-      current_web_user.fact_checks.order(created_at: :desc).limit(10)
+      current_web_user.fact_checks.includes(:channel).order(created_at: :desc).limit(10)
     else
-      []
+      FactCheck.includes(:channel).where(status: :completed).order(created_at: :desc).limit(10)
     end
   end
 
