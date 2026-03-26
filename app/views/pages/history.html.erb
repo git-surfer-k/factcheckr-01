@@ -106,42 +106,23 @@
           <% end %>
         </ul>
 
-        <%# ===== 페이지네이션 ===== %>
-        <% total_pages = (@total_count.to_f / @per_page).ceil %>
-        <% if total_pages > 1 %>
-          <nav class="flex items-center justify-center gap-2 mt-8" aria-label="페이지 이동">
-            <%# 이전 버튼 %>
-            <% if @has_prev_page %>
-              <%= link_to history_path(page: @page - 1),
-                class: "px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors" do %>
-                &larr; 이전
-              <% end %>
+        <%# ===== 더보기 버튼 ===== %>
+        <% if @has_more %>
+          <div class="mt-8 text-center">
+            <%= link_to history_path(count: @load_count + @per_load),
+              class: "inline-flex items-center gap-2 px-8 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 hover:border-blue-300 hover:text-blue-700 transition-all" do %>
+              더보기
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
             <% end %>
-
-            <%# 페이지 번호 %>
-            <% (1..total_pages).each do |p| %>
-              <% if p == @page %>
-                <span class="px-3 py-2 text-sm font-bold text-white bg-blue-800 rounded-lg"><%= p %></span>
-              <% elsif (p - @page).abs <= 2 || p == 1 || p == total_pages %>
-                <%= link_to history_path(page: p),
-                  class: "px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" do %>
-                  <%= p %>
-                <% end %>
-              <% elsif (p - @page).abs == 3 %>
-                <span class="px-1 text-gray-400">...</span>
-              <% end %>
-            <% end %>
-
-            <%# 다음 버튼 %>
-            <% if @has_next_page %>
-              <%= link_to history_path(page: @page + 1),
-                class: "px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors" do %>
-                다음 &rarr;
-              <% end %>
-            <% end %>
-          </nav>
+          </div>
           <p class="text-center text-xs text-gray-400 mt-2">
-            <%= @total_count %>건 중 <%= (@page - 1) * @per_page + 1 %>–<%= [(@page) * @per_page, @total_count].min %>번째
+            <%= @fact_checks.size %>건 / 총 <%= @total_count %>건
+          </p>
+        <% else %>
+          <p class="text-center text-xs text-gray-400 mt-8">
+            전체 <%= @total_count %>건을 모두 표시했습니다
           </p>
         <% end %>
 

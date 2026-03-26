@@ -39,8 +39,9 @@ class PagesController < ActionController::Base
   # 로그인 시 내 기록, 비로그인 시 전체 완료된 팩트체크 표시
   # 페이지당 12개 (3x4 그리드), 페이지네이션
   def history
-    @page = (params[:page] || 1).to_i
-    @per_page = 12
+    # "더보기" 방식: limit을 누적으로 늘려서 표시
+    @load_count = [(params[:count] || 12).to_i, 300].min
+    @per_load = 12
 
     base_query = if logged_in?
       current_web_user.fact_checks.includes(:channel)
@@ -48,15 +49,9 @@ class PagesController < ActionController::Base
       FactCheck.includes(:channel).where(status: :completed)
     end
 
-    all_checks = base_query.order(created_at: :desc)
-                           .offset((@page - 1) * @per_page)
-                           .limit(@per_page + 1)
-                           .to_a
-
-    @has_next_page = all_checks.length > @per_page
-    @has_prev_page = @page > 1
-    @fact_checks = all_checks.first(@per_page)
     @total_count = base_query.count
+    @fact_checks = base_query.order(created_at: :desc).limit(@load_count).to_a
+    @has_more = @load_count < @total_count
   end
 
   # 설정 페이지: 로그인 필수, 사용자 프로필 + 구독 정보 로드
