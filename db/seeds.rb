@@ -5,35 +5,59 @@
 
 puts "=== Factis 씨드 데이터 생성 시작 ==="
 
-# ---------- 1. 테스트 사용자 ----------
-user = User.find_or_create_by!(email: "test@factis.com") do |u|
-  u.name = "테스트 사용자"
-  u.user_type = :b2c
-  u.password = "seed_password_not_used"
-  u.is_active = true
-end
-puts "  사용자: #{user.email}"
+# ---------- 1. B2C 사용자 5명 ----------
+# 각 사용자는 관심 카테고리가 다르며, 해당 카테고리 채널의 팩트체크를 요청한다.
+SEED_USERS = [
+  { email: "jihye.kim@gmail.com",   name: "김지혜", token: "token-jihye-001",   sub: :b2c_premium, interests: "정치·경제 관심" },
+  { email: "minsoo.park@naver.com", name: "박민수", token: "token-minsoo-002",  sub: :b2c_basic,   interests: "사회·교육 관심" },
+  { email: "yuna.lee@kakao.com",    name: "이유나", token: "token-yuna-003",    sub: :b2c_premium, interests: "국제·외교 관심" },
+  { email: "dongwon.choi@gmail.com",name: "최동원", token: "token-dongwon-004", sub: :b2c_basic,   interests: "경제·투자 관심" },
+  { email: "soojin.han@naver.com",  name: "한수진", token: "token-soojin-005",  sub: nil,          interests: "종합 시사 관심 (무료)" },
+].freeze
 
-# 세션 토큰 생성
-session = Session.find_or_create_by!(user: user) do |s|
-  s.token = "test-session-token-123"
-  s.ip_address = "127.0.0.1"
-  s.user_agent = "Seed/1.0"
-end
-puts "  세션 토큰: #{session.token}"
+# 사용자별 담당 채널 (인덱스 기반, 겹치지 않게 분배)
+# 30개 채널을 5명에게 6개씩 배분
+USER_CHANNEL_MAP = {
+  0 => [0, 1, 2, 3, 4, 5],          # 김지혜: 정치 채널 6개 (30건)
+  1 => [6, 7, 8, 9, 10, 11],        # 박민수: 경제 채널 6개 (30건)
+  2 => [12, 13, 14, 15, 16, 17],    # 이유나: 사회 채널 전반 6개 (30건)
+  3 => [18, 19, 20, 21, 22, 23],    # 최동원: 국제 채널 6개 (30건)
+  4 => [24, 25, 26, 27, 28, 29],    # 한수진: 종합/기타 채널 6개 (30건)
+}.freeze
 
-# 구독 생성
-unless user.subscriptions.active.exists?
-  Subscription.create!(
-    user: user,
-    plan_type: :b2c_basic,
-    status: :active,
-    started_at: 30.days.ago,
-    expires_at: 335.days.from_now,
-    payment_method: "card"
-  )
-  puts "  구독: b2c_basic (active)"
+seed_users = SEED_USERS.map.with_index do |u_data, u_idx|
+  user = User.find_or_create_by!(email: u_data[:email]) do |u|
+    u.name = u_data[:name]
+    u.user_type = :b2c
+    u.password = "seed_password_not_used"
+    u.is_active = true
+  end
+
+  # 세션 토큰
+  Session.find_or_create_by!(user: user) do |s|
+    s.token = u_data[:token]
+    s.ip_address = "127.0.0.1"
+    s.user_agent = "Seed/1.0"
+  end
+
+  # 구독 (5번째 사용자는 무료)
+  if u_data[:sub] && !user.subscriptions.active.exists?
+    Subscription.create!(
+      user: user,
+      plan_type: u_data[:sub],
+      status: :active,
+      started_at: rand(10..60).days.ago,
+      expires_at: rand(300..350).days.from_now,
+      payment_method: "card"
+    )
+  end
+
+  puts "  사용자 #{u_idx + 1}: #{user.email} (#{u_data[:name]}) — #{u_data[:interests]}"
+  user
 end
+
+# 기존 호환용 (태그 생성 등에서 사용)
+user = seed_users.first
 
 # ---------- 2. 채널 정의 (30개, 5개 카테고리) ----------
 CHANNELS = [
@@ -265,7 +289,8 @@ CHANNELS.each_with_index do |ch, idx|
     %i[false_claim mostly_false false_claim half_true mostly_false]
   end
 
-  # 팩트체크 5개 생성
+  # 팩트체크 5개 생성 — 채널별로 담당 사용자 배정
+  owner = seed_users[USER_CHANNEL_MAP.find { |_, channels| channels.include?(idx) }&.first || 0]
   scenarios = SCENARIOS[ch[:category]] || SCENARIOS["정치"]
   scenarios.each_with_index do |scenario, s_idx|
     title_suffix, summary, claims_data = scenario
@@ -273,7 +298,7 @@ CHANNELS.each_with_index do |ch, idx|
     created = (5 - s_idx).weeks.ago + rand(0..6).days
 
     fc = FactCheck.find_or_create_by!(youtube_video_id: video_id) do |f|
-      f.user = user
+      f.user = owner
       f.channel = channel
       f.youtube_url = "https://www.youtube.com/watch?v=#{video_id}"
       f.video_title = "#{ch[:name]} — #{title_suffix}"
@@ -375,6 +400,12 @@ puts "  뉴스소스: #{NewsSource.count}개"
 puts "  채널점수: #{ChannelScore.count}개"
 puts "  사용자: #{User.count}명"
 puts ""
+puts "  [사용자별 팩트체크 수]"
+seed_users.each do |u|
+  s = Session.find_by(user: u)
+  puts "    #{u.name} (#{u.email}) — #{u.fact_checks.count}건 | 토큰: #{s&.token}"
+end
+puts ""
 puts "  [로그인 방법] 브라우저 콘솔에서 실행:"
-puts "    document.cookie = 'session_token=test-session-token-123; path=/'"
+puts "    document.cookie = 'session_token=토큰값; path=/'"
 puts "    location.reload()"
