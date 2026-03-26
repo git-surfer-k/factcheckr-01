@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
-# Add these routes to config/routes.rb
+# @TASK P0-T0.4 - Email OTP 인증 라우트
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
-      # Authentication
-      post 'auth/register', to: 'auth#register'
-      post 'auth/login', to: 'auth#login'
-      post 'auth/logout', to: 'auth#logout'
-      post 'auth/password/change', to: 'auth#change_password'
+      # Authentication (Email OTP)
+      post 'auth/request_otp', to: 'auth#request_otp'
+      post 'auth/verify_otp', to: 'auth#verify_otp'
+      delete 'auth/logout', to: 'auth#logout'
 
       # User profile
       get 'users/me', to: 'users#me'

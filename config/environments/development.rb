@@ -31,7 +31,8 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Don't care if the mailer can't send.
+  # 개발 환경: 이메일을 실제로 보내지 않고 로그에 출력
+  config.action_mailer.delivery_method = :log
   config.action_mailer.raise_delivery_errors = false
 
   # Make template changes take effect immediately.

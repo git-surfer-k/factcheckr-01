@@ -1,0 +1,10 @@
+{
+  "project": "factis-01",
+  "mode": "auto-orchestrate",
+  "started_at": "2026-03-26T19:30:00+09:00",
+  "current_phase": 1,
+  "completed_phases": [0],
+  "failed_tasks": [],
+  "total_tasks": 32,
+  "completed_tasks": 4
+}

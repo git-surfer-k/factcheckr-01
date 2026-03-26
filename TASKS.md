@@ -115,26 +115,26 @@ flowchart TD
 
 ## Phase 0: 프로젝트 셋업
 
-### [ ] P0-T0.1: Rails 프로젝트 초기화
+### [x] P0-T0.1: Rails 프로젝트 초기화
 - **담당**: backend-specialist
 - **스펙**: Ruby on Rails 프로젝트 생성 (API 모드 + 뷰 포함), 기본 Gem 설정 (pg, authentication-zero, jbuilder)
 - **파일**: `Gemfile`, `config/database.yml`, `config/routes.rb`
 - **완료 조건**: `rails server` 정상 기동
 
-### [ ] P0-T0.2: FastAPI AI 서버 초기화
+### [x] P0-T0.2: FastAPI AI 서버 초기화
 - **담당**: backend-specialist
 - **스펙**: FastAPI 프로젝트 생성 (ai_server/), 의존성 설정 (openai, whisper, yt-dlp, httpx)
 - **파일**: `ai_server/main.py`, `ai_server/requirements.txt`
 - **완료 조건**: `uvicorn` 정상 기동, `/health` 엔드포인트 응답
 
-### [ ] P0-T0.3: DB 스키마 마이그레이션
+### [x] P0-T0.3: DB 스키마 마이그레이션
 - **담당**: database-specialist
 - **스펙**: PostgreSQL DB 생성, pgvector 확장 설치, 9개 테이블 마이그레이션 (users, fact_checks, claims, news_sources, channels, channel_scores, channel_tags, subscriptions, b2b_reports)
 - **파일**: `db/migrate/*.rb`
 - **참조**: `docs/planning/04-database-design.md`
 - **완료 조건**: `rails db:migrate` 성공, 모든 테이블 존재
 
-### [ ] P0-T0.4: Authentication Zero 설정
+### [x] P0-T0.4: Authentication Zero 설정
 - **담당**: backend-specialist
 - **스펙**: authentication-zero gem 설치 + Email OTP 인증 플로우 구현
 - **파일**: `app/controllers/sessions_controller.rb`, `app/models/user.rb`

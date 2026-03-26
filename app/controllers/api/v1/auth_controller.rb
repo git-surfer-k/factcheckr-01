@@ -1,77 +1,100 @@
 # frozen_string_literal: true
 
+# @TASK P0-T0.4 - Email OTP 인증 컨트롤러
+# @SPEC docs/planning/02-trd.md#인증-API
 module Api
   module V1
-    # Rails 8 style authentication controller.
-    # Supports JWT for API and optional session-based authentication.
+    # Email OTP 기반 인증 컨트롤러.
+    # 이메일로 6자리 OTP를 발송하고, 검증 후 세션을 생성한다.
+    # 신규 사용자는 OTP 검증 시 자동 가입된다.
     class AuthController < ApplicationController
-      skip_before_action :authenticate_request, only: %i[register login]
+      skip_before_action :authenticate_user!, only: %i[request_otp verify_otp]
 
-      # POST /api/v1/auth/register
-      def register
-        user = User.new(register_params)
+      # POST /api/v1/auth/request_otp
+      # 이메일 주소로 6자리 OTP 발송
+      def request_otp
+        email = params[:email]&.strip&.downcase
 
-        if user.save
-          token = user.generate_jwt
-          render json: {
-            user: user_response(user),
-            access_token: token,
-            token_type: 'bearer'
-          }, status: :created
-        else
-          render json: { detail: user.errors.full_messages.join(', ') }, status: :unprocessable_entity
+        if email.blank? || !email.match?(URI::MailTo::EMAIL_REGEXP)
+          render json: { detail: "올바른 이메일 주소를 입력해 주세요." }, status: :bad_request
+          return
         end
+
+        # 기존 사용자 찾기 또는 나중에 verify_otp에서 생성
+        user = User.find_or_initialize_by(email: email)
+
+        if user.new_record?
+          # 신규 사용자: 아직 저장하지 않고 OTP만 생성
+          user.user_type = :b2c
+          user.save!
+        end
+
+        # 비활성 사용자 차단
+        unless user.is_active
+          render json: { detail: "비활성화된 계정입니다." }, status: :forbidden
+          return
+        end
+
+        # OTP 생성 및 이메일 발송
+        user.generate_otp!
+        OtpMailer.send_otp(user).deliver_later
+
+        render json: {
+          message: "인증 코드가 이메일로 발송되었습니다.",
+          email: user.email
+        }
       end
 
-      # POST /api/v1/auth/login
-      def login
-        user = User.find_by(email: params[:email])
+      # POST /api/v1/auth/verify_otp
+      # OTP 검증 후 세션 생성 (신규 사용자면 자동 가입 완료)
+      def verify_otp
+        email = params[:email]&.strip&.downcase
+        otp_code = params[:otp_code]
 
-        if user&.authenticate(params[:password]) && user.is_active
-          token = user.generate_jwt
-          session = user.create_session!
-
-          render json: {
-            access_token: token,
-            token_type: 'bearer',
-            session_token: session.token
-          }
-        else
-          render json: { detail: 'Incorrect email or password' }, status: :unauthorized
+        if email.blank? || otp_code.blank?
+          render json: { detail: "이메일과 인증 코드를 모두 입력해 주세요." }, status: :bad_request
+          return
         end
+
+        user = User.find_by(email: email)
+
+        unless user
+          render json: { detail: "인증 코드가 올바르지 않거나 만료되었습니다." }, status: :unauthorized
+          return
+        end
+
+        unless user.is_active
+          render json: { detail: "비활성화된 계정입니다." }, status: :forbidden
+          return
+        end
+
+        # OTP 검증 (일치 + 만료 확인)
+        unless user.verify_otp(otp_code)
+          render json: { detail: "인증 코드가 올바르지 않거나 만료되었습니다." }, status: :unauthorized
+          return
+        end
+
+        # 세션 생성
+        session = user.create_session!
+
+        render json: {
+          message: "로그인 성공",
+          session_token: session.token,
+          user: user_response(user)
+        }
       end
 
-      # POST /api/v1/auth/logout
+      # DELETE /api/v1/auth/logout
+      # 현재 세션 삭제
       def logout
-        # Destroy the current session if using session-based auth
         if current_session
           current_session.destroy
         end
 
-        render json: { message: 'Successfully logged out' }
-      end
-
-      # POST /api/v1/auth/password/change
-      def change_password
-        unless current_user.authenticate(params[:current_password])
-          render json: { detail: 'Incorrect current password' }, status: :bad_request
-          return
-        end
-
-        if current_user.update(password: params[:new_password])
-          # Optionally destroy all other sessions after password change
-          current_user.sessions.where.not(id: current_session&.id).destroy_all
-          render json: { message: 'Password changed successfully' }
-        else
-          render json: { detail: current_user.errors.full_messages.join(', ') }, status: :unprocessable_entity
-        end
+        render json: { message: "로그아웃 되었습니다." }
       end
 
       private
-
-      def register_params
-        params.permit(:email, :password, :name)
-      end
 
       def user_response(user)
         {

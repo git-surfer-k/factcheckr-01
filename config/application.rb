@@ -23,5 +23,14 @@ module Factis01
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # UUID를 기본 primary key로 설정
+    config.generators do |g|
+      g.orm :active_record, primary_key_type: :uuid
+    end
+
+    # SQLite에서 UUID 타입을 schema.rb로 덤프하지 못하는 문제 해결
+    # structure.sql 방식으로 스키마 관리
+    config.active_record.schema_format = :sql
   end
 end
