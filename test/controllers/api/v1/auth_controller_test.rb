@@ -89,6 +89,16 @@ class Api::V1::AuthControllerTest < ActionDispatch::IntegrationTest
     assert_includes json["message"], "로그인 성공"
   end
 
+  test "verify_otp: 응답에 user_type이 포함된다" do
+    otp = @existing_user.generate_otp!
+
+    post "/api/v1/auth/verify_otp", params: { email: "existing@example.com", otp_code: otp }, as: :json
+
+    assert_response :ok
+    json = JSON.parse(response.body)
+    assert_equal "b2c", json["user"]["user_type"]
+  end
+
   test "verify_otp: 세션이 생성된다" do
     otp = @existing_user.generate_otp!
 

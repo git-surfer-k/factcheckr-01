@@ -50,4 +50,7 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # 통합 테스트에서 기본 테스트 호스트(www.example.com) 허용
+  config.hosts << "www.example.com"
 end

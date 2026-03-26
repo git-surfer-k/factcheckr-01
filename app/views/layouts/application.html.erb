@@ -1,29 +1,81 @@
 <!DOCTYPE html>
-<html>
+<%# @TASK P1-S0-T1 - 공통 레이아웃 (반응형: 모바일 하단 탭 + 웹 상단 네비게이션) %>
+<html lang="ko">
   <head>
-    <title><%= content_for(:title) || "Factis 01" %></title>
+    <title><%= content_for?(:title) ? yield(:title) : "Factis — AI 팩트체크" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Factis 01">
+    <meta name="application-name" content="Factis">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="유튜브 시사·뉴스 채널의 주장을 AI와 빅카인즈 뉴스 빅데이터로 팩트체크합니다.">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%# Pretendard 폰트 (한글 최적화) %>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+      crossorigin="anonymous"
+    >
+
+    <%# Tailwind CSS %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="font-sans antialiased bg-gray-50 text-gray-900">
+    <%# 웹 상단 네비게이션 (데스크톱에서만 표시) %>
+    <%= render "layouts/web_top_nav" %>
+
+    <%# 모바일: 상단 헤더 (모바일에서만 표시) %>
+    <header class="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 px-4 h-14 flex items-center justify-between shadow-sm">
+      <%= link_to root_path, class: "text-xl font-bold text-blue-800", aria: { label: "Factis 홈" } do %>
+        Factis
+      <% end %>
+      <button
+        class="w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
+        aria-label="알림"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+      </button>
+    </header>
+
+    <%# 메인 콘텐츠 영역 %>
+    <%# 모바일: 상단 헤더(56px) + 하단 탭(64px) 여유 공간 확보 %>
+    <%# 데스크톱: 상단 네비게이션(56px) 여유 공간 확보 %>
+    <main class="pt-14 md:pt-14" role="main">
+      <%= yield %>
+    </main>
+
+    <%# 모바일 하단 탭 네비게이션 %>
+    <%= render "layouts/mobile_bottom_nav" %>
+
+    <%# Flash 메시지 (토스트 형태) %>
+    <% if flash[:notice] %>
+      <div
+        role="alert"
+        class="fixed top-16 left-1/2 -translate-x-1/2 z-[100] bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg text-sm font-medium"
+      >
+        <%= flash[:notice] %>
+      </div>
+    <% end %>
+    <% if flash[:alert] %>
+      <div
+        role="alert"
+        class="fixed top-16 left-1/2 -translate-x-1/2 z-[100] bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg text-sm font-medium"
+      >
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
   </body>
 </html>
