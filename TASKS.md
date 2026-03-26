@@ -452,7 +452,7 @@ flowchart TD
 
 ### P5-R1: B2B Reports Resource
 
-#### [ ] P5-R1-T1: B2B Reports API 구현
+#### [x] P5-R1-T1: B2B Reports API 구현
 - **담당**: backend-specialist
 - **리소스**: b2b_reports
 - **엔드포인트**:
@@ -467,7 +467,7 @@ flowchart TD
 
 ### P5-S1: B2B 로그인 화면
 
-#### [ ] P5-S1-T1: B2B 로그인 UI 구현
+#### [x] P5-S1-T1: B2B 로그인 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /login (b2b-auth.yaml, 별도 레이아웃)
 - **컴포넌트**: B2BAuthForm (form — 기업 로그인/회원가입)
@@ -479,7 +479,7 @@ flowchart TD
 
 ### P5-S2: B2B 대시보드 화면
 
-#### [ ] P5-S2-T1: B2B 대시보드 UI 구현
+#### [x] P5-S2-T1: B2B 대시보드 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /dashboard (b2b-dashboard.yaml)
 - **컴포넌트**: SidebarNav (navigation), SubscriptionCard (stat-card), RecentReports (list), NewReportButton
@@ -491,7 +491,7 @@ flowchart TD
 
 ### P5-S3: B2B 리포트 요청 화면
 
-#### [ ] P5-S3-T1: B2B 리포트 요청 UI 구현
+#### [x] P5-S3-T1: B2B 리포트 요청 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /reports/new (b2b-report-new.yaml)
 - **컴포넌트**: CompanyForm (form — 기업정보+상품정보+타겟 카테고리)
@@ -503,7 +503,7 @@ flowchart TD
 
 ### P5-S4: B2B 리포트 상세 화면
 
-#### [ ] P5-S4-T1: B2B 리포트 상세 UI 구현
+#### [x] P5-S4-T1: B2B 리포트 상세 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /reports/:id (b2b-report-detail.yaml)
 - **컴포넌트**: RecommendedChannels (list), ChannelAnalysis (detail), DownloadReport (button)
@@ -515,7 +515,7 @@ flowchart TD
 
 ### P5-S5: B2B 결제/구독 관리 화면
 
-#### [ ] P5-S5-T1: B2B 결제 관리 UI 구현
+#### [x] P5-S5-T1: B2B 결제 관리 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /billing (b2b-billing.yaml)
 - **컴포넌트**: CurrentPlan (stat-card), PlanSelector (card), PaymentHistory (table)
