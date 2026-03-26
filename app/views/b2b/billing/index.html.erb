@@ -1,0 +1,412 @@
+<%# @TASK P5-S5-T1 - B2B 결제 관리 페이지 %>
+<%# @SPEC specs/screens/b2b-billing.yaml %>
+<%# B2B 기업 사용자의 구독 플랜, 결제 수단, 결제 이력을 관리한다. %>
+
+<% content_for :title, "결제 관리 — Factis for Business" %>
+
+<%# 전체 대시보드 레이아웃: 사이드바 + 메인 콘텐츠 %>
+<div class="flex min-h-screen bg-blue-50">
+
+  <%# ======= B2B 사이드바 네비게이션 ======= %>
+  <aside
+    data-nav="b2b-sidebar"
+    class="w-60 bg-white border-r border-blue-100 flex flex-col shadow-sm"
+    aria-label="B2B 대시보드 메뉴"
+  >
+    <%# 브랜드 로고 영역 %>
+    <div class="px-6 py-5 border-b border-blue-100">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-800 flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            />
+          </svg>
+        </div>
+        <span class="text-sm font-bold text-blue-900 tracking-tight">Factis for Business</span>
+      </div>
+    </div>
+
+    <%# 메뉴 목록 %>
+    <nav class="flex-1 px-3 py-4 space-y-1" role="navigation">
+      <%# 대시보드 메뉴 %>
+      <% if respond_to?(:b2b_dashboard_path) %>
+        <%= link_to b2b_dashboard_path,
+            class: "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-900 transition-colors",
+            "aria-label": "대시보드로 이동" do %>
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            />
+          </svg>
+          대시보드
+        <% end %>
+      <% end %>
+
+      <%# 새 리포트 요청 메뉴 %>
+      <% if respond_to?(:new_b2b_report_path) %>
+        <%= link_to new_b2b_report_path,
+            class: "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-900 transition-colors",
+            "aria-label": "새 리포트 요청하기" do %>
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          새 리포트 요청
+        <% end %>
+      <% end %>
+
+      <%# 결제 관리 메뉴 (현재 페이지, 활성 상태) %>
+      <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-blue-800 bg-blue-50"
+           aria-current="page">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+          />
+        </svg>
+        결제 관리
+      </div>
+    </nav>
+
+    <%# 사이드바 하단: 사용자 이메일 표시 %>
+    <div class="px-4 py-4 border-t border-blue-100">
+      <p class="text-xs text-gray-500 truncate" aria-label="로그인 계정">
+        <%= current_b2b_user.email %>
+      </p>
+    </div>
+  </aside>
+
+  <%# ======= 메인 콘텐츠 영역 ======= %>
+  <main class="flex-1 overflow-y-auto" role="main">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+
+      <%# 페이지 헤더 %>
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-blue-900 tracking-tight">결제 관리</h1>
+        <p class="mt-1 text-sm text-gray-500">구독 플랜과 결제 정보를 확인하고 관리합니다.</p>
+      </div>
+
+      <%# ======= CurrentPlan: 현재 구독 플랜 카드 ======= %>
+      <section
+        data-component="current-plan"
+        class="bg-white rounded-2xl border border-blue-100 p-6 mb-6 shadow-sm"
+        aria-labelledby="current-plan-heading"
+      >
+        <h2 id="current-plan-heading" class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+            />
+          </svg>
+          현재 구독 플랜
+        </h2>
+
+        <% if @current_subscription %>
+          <%# 활성 구독이 있는 경우 %>
+          <div class="flex items-start justify-between">
+            <div class="space-y-2">
+              <%# 플랜 이름 %>
+              <div data-field="plan-name">
+                <% plan_label = case @current_subscription.plan_type
+                                when "b2b_standard"   then "Standard"
+                                when "b2b_enterprise" then "Enterprise"
+                                else @current_subscription.plan_type.humanize
+                                end %>
+                <span class="text-xl font-bold text-blue-900">B2B <%= plan_label %></span>
+              </div>
+
+              <%# 구독 상태 배지 %>
+              <div data-field="plan-status">
+                <% if @current_subscription.currently_active? %>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+                    활성
+                  </span>
+                <% elsif @current_subscription.expired? %>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500" aria-hidden="true"></span>
+                    만료됨
+                  </span>
+                <% elsif @current_subscription.canceled? %>
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400" aria-hidden="true"></span>
+                    취소됨
+                  </span>
+                <% end %>
+              </div>
+
+              <%# 만료일 %>
+              <% if @current_subscription.expires_at %>
+                <div data-field="expires-at" class="text-sm text-gray-500">
+                  만료일:
+                  <time datetime="<%= @current_subscription.expires_at.iso8601 %>" class="font-medium text-gray-700">
+                    <%= @current_subscription.expires_at.strftime("%Y년 %m월 %d일") %>
+                  </time>
+                </div>
+              <% end %>
+            </div>
+
+            <%# 플랜 변경 버튼 (스크롤 앵커) %>
+            <a
+              href="#plan-selector"
+              class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-800 hover:bg-blue-900 text-white text-sm font-semibold rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
+              aria-label="플랜 변경하기"
+            >
+              플랜 변경
+            </a>
+          </div>
+        <% else %>
+          <%# 구독이 없는 경우 빈 상태 %>
+          <div class="text-center py-6">
+            <svg class="w-10 h-10 text-blue-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <p class="text-sm text-gray-500" data-field="plan-name">구독 중인 플랜이 없습니다.</p>
+            <p class="text-xs text-gray-400 mt-1" data-field="plan-status">
+              아래에서 플랜을 선택해 주세요.
+            </p>
+            <%# 만료일 필드: 구독 없음 상태에서도 data-field 존재 보장 %>
+            <span data-field="expires-at" class="hidden" aria-hidden="true"></span>
+          </div>
+        <% end %>
+      </section>
+
+      <%# ======= PlanSelector: 플랜 선택 섹션 ======= %>
+      <section
+        id="plan-selector"
+        data-component="plan-selector"
+        class="bg-white rounded-2xl border border-blue-100 p-6 mb-6 shadow-sm"
+        aria-labelledby="plan-selector-heading"
+      >
+        <h2 id="plan-selector-heading" class="text-base font-semibold text-gray-900 mb-1">플랜 선택</h2>
+        <p class="text-sm text-gray-500 mb-6">비즈니스 규모에 맞는 플랜을 선택하세요.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <%# B2B Standard 플랜 카드 %>
+          <div
+            data-plan="b2b_standard"
+            class="relative border-2 rounded-xl p-5 transition-all <%= @current_subscription&.b2b_standard? ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300 bg-white' %>"
+          >
+            <%# 현재 플랜 배지 %>
+            <% if @current_subscription&.b2b_standard? %>
+              <span class="absolute -top-2.5 left-4 px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full">
+                현재 플랜
+              </span>
+            <% end %>
+
+            <div class="mb-4">
+              <h3 class="text-lg font-bold text-gray-900">Standard</h3>
+              <p class="text-sm text-gray-500 mt-0.5">중소규모 광고주에게 적합</p>
+            </div>
+
+            <div class="mb-4">
+              <span class="text-3xl font-bold text-gray-900">₩290,000</span>
+              <span class="text-sm text-gray-500 ml-1">/ 월</span>
+            </div>
+
+            <ul class="space-y-2 mb-6 text-sm text-gray-600">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                월 10개 채널 리포트
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                PDF 리포트 다운로드
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                이메일 지원
+              </li>
+            </ul>
+
+            <button
+              type="button"
+              class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 <%= @current_subscription&.b2b_standard? ? 'bg-blue-100 text-blue-700 cursor-default' : 'bg-blue-800 hover:bg-blue-900 text-white' %>"
+              <%= "disabled aria-disabled='true'" if @current_subscription&.b2b_standard? %>
+              aria-label="Standard 플랜 <%= @current_subscription&.b2b_standard? ? '(현재 구독 중)' : '선택하기' %>"
+            >
+              <%= @current_subscription&.b2b_standard? ? "현재 플랜" : "이 플랜 선택" %>
+            </button>
+          </div>
+
+          <%# B2B Enterprise 플랜 카드 %>
+          <div
+            data-plan="b2b_enterprise"
+            class="relative border-2 rounded-xl p-5 transition-all <%= @current_subscription&.b2b_enterprise? ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300 bg-white' %>"
+          >
+            <%# 현재 플랜 배지 %>
+            <% if @current_subscription&.b2b_enterprise? %>
+              <span class="absolute -top-2.5 left-4 px-2.5 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full">
+                현재 플랜
+              </span>
+            <% end %>
+
+            <%# 추천 배지 %>
+            <% unless @current_subscription&.b2b_enterprise? %>
+              <span class="absolute -top-2.5 right-4 px-2.5 py-0.5 bg-orange-500 text-white text-xs font-semibold rounded-full">
+                추천
+              </span>
+            <% end %>
+
+            <div class="mb-4">
+              <h3 class="text-lg font-bold text-gray-900">Enterprise</h3>
+              <p class="text-sm text-gray-500 mt-0.5">대규모 광고주 및 에이전시</p>
+            </div>
+
+            <div class="mb-4">
+              <span class="text-3xl font-bold text-gray-900">₩890,000</span>
+              <span class="text-sm text-gray-500 ml-1">/ 월</span>
+            </div>
+
+            <ul class="space-y-2 mb-6 text-sm text-gray-600">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                무제한 채널 리포트
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                PDF + CSV 리포트
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                전담 매니저 지원
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                API 연동 지원
+              </li>
+            </ul>
+
+            <button
+              type="button"
+              class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 <%= @current_subscription&.b2b_enterprise? ? 'bg-blue-100 text-blue-700 cursor-default' : 'bg-blue-800 hover:bg-blue-900 text-white' %>"
+              <%= "disabled aria-disabled='true'" if @current_subscription&.b2b_enterprise? %>
+              aria-label="Enterprise 플랜 <%= @current_subscription&.b2b_enterprise? ? '(현재 구독 중)' : '선택하기' %>"
+            >
+              <%= @current_subscription&.b2b_enterprise? ? "현재 플랜" : "이 플랜 선택" %>
+            </button>
+          </div>
+
+        </div>
+
+        <%# 플랜 변경 문의 안내 %>
+        <p class="mt-4 text-center text-xs text-gray-400">
+          플랜 변경 문의:
+          <a href="mailto:business@factis.io" class="text-blue-700 hover:text-blue-900 font-medium">
+            business@factis.io
+          </a>
+        </p>
+      </section>
+
+      <%# ======= PaymentMethod: 결제 수단 섹션 (MVP — UI만) ======= %>
+      <section
+        data-component="payment-method"
+        class="bg-white rounded-2xl border border-blue-100 p-6 mb-6 shadow-sm"
+        aria-labelledby="payment-method-heading"
+      >
+        <h2 id="payment-method-heading" class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            />
+          </svg>
+          결제 수단
+        </h2>
+
+        <%# MVP: 결제 수단 등록 UI 표시 (실제 연동은 추후 구현) %>
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-7 bg-gray-200 rounded flex items-center justify-center">
+              <svg class="w-5 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 14" aria-hidden="true">
+                <rect width="20" height="14" rx="2" fill="currentColor" opacity="0.3"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">등록된 결제 수단 없음</p>
+              <p class="text-xs text-gray-400">카드 등록은 플랜 선택 후 진행됩니다.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="text-sm font-medium text-blue-700 hover:text-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 rounded"
+            aria-label="결제 수단 등록하기 (준비 중)"
+            disabled
+          >
+            등록 (준비 중)
+          </button>
+        </div>
+      </section>
+
+      <%# ======= BillingHistory: 결제 이력 섹션 ======= %>
+      <section
+        data-component="billing-history"
+        class="bg-white rounded-2xl border border-blue-100 p-6 shadow-sm"
+        aria-labelledby="billing-history-heading"
+      >
+        <h2 id="billing-history-heading" class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+          결제 이력
+        </h2>
+
+        <% if @billing_history.present? %>
+          <%# 결제 이력 테이블 (추후 구현) %>
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-100">
+                <th class="text-left py-2 text-gray-500 font-medium">날짜</th>
+                <th class="text-left py-2 text-gray-500 font-medium">내역</th>
+                <th class="text-right py-2 text-gray-500 font-medium">금액</th>
+                <th class="text-right py-2 text-gray-500 font-medium">상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @billing_history.each do |item| %>
+                <tr class="border-b border-gray-50">
+                  <td class="py-3 text-gray-600"><%= item[:date] %></td>
+                  <td class="py-3 text-gray-900"><%= item[:description] %></td>
+                  <td class="py-3 text-gray-900 text-right"><%= item[:amount] %></td>
+                  <td class="py-3 text-right"><%= item[:status] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% else %>
+          <%# 결제 이력 없음: 빈 상태 표시 (MVP — 항상 이 상태) %>
+          <div data-component="empty-state" class="text-center py-10">
+            <svg class="w-10 h-10 text-blue-100 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            <p class="text-sm text-gray-400 font-medium">결제 이력이 없습니다.</p>
+            <p class="text-xs text-gray-400 mt-1">구독 등록 후 결제 내역이 여기에 표시됩니다.</p>
+          </div>
+        <% end %>
+      </section>
+
+    </div>
+  </main>
+
+</div>

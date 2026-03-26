@@ -1,0 +1,311 @@
+<%# @TASK P5-S4-T1 - B2B 리포트 상세 화면 %>
+<%# @SPEC specs/screens/b2b-report-detail.yaml %>
+<%# 구성: ReportHeader / StatusBadge / RecommendedChannels / ReportContent %>
+<%# Trust Blue(#1E40AF) 기반 B2B 브랜드 디자인 %>
+<% content_for :title, "#{@report.company_name} 리포트 — Factis for Business" %>
+
+<div class="min-h-screen bg-blue-50" data-page="b2b-report-detail">
+
+  <%# ===== 페이지 헤더: 뒤로가기 + 타이틀 ===== %>
+  <header class="bg-white border-b border-blue-100 sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
+      <%# 뒤로가기 버튼 (대시보드) %>
+      <%= link_to b2b_dashboard_path,
+          class: "inline-flex items-center gap-1.5 text-sm text-blue-700 hover:text-blue-900 font-medium transition-colors",
+          "aria-label": "대시보드로 돌아가기" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        대시보드
+      <% end %>
+
+      <span aria-hidden="true" class="text-gray-300">/</span>
+
+      <%# 리포트 타이틀 (기업명) %>
+      <h1 class="text-sm font-semibold text-gray-700 truncate">
+        <%= @report.company_name %> 광고적합성 리포트
+      </h1>
+    </div>
+  </header>
+
+  <%# ===== 메인 컨텐츠 ===== %>
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6" role="main">
+
+    <%# ===== ReportHeader: 기업명, 산업, 상태, 생성일 ===== %>
+    <div
+      data-component="report-header"
+      class="bg-white rounded-2xl border border-blue-100 shadow-sm p-6 mb-5"
+    >
+      <%# 상단 행: 기업 정보 + 상태 배지 %>
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <%# 왼쪽: 기업 아이콘 + 기업명/산업 %>
+        <div class="flex items-center gap-4">
+          <%# 기업 아이콘 (이니셜 아바타) %>
+          <div
+            class="w-14 h-14 rounded-2xl bg-blue-800 flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+            aria-hidden="true"
+          >
+            <%= @report.company_name.first %>
+          </div>
+
+          <div>
+            <%# 기업명 %>
+            <h2
+              data-field="company-name"
+              class="text-xl font-bold text-gray-900 leading-tight"
+            >
+              <%= @report.company_name %>
+            </h2>
+            <%# 산업 분야 %>
+            <p
+              data-field="industry"
+              class="text-sm text-blue-600 font-medium mt-0.5"
+            >
+              <%= @report.industry %>
+            </p>
+          </div>
+        </div>
+
+        <%# 오른쪽: StatusBadge %>
+        <%# @TASK P5-S4-T1 - StatusBadge 컴포넌트 (상태에 따라 색상/라벨 변경) %>
+        <% status_styles = {
+          "pending"   => { bg: "bg-gray-100",   text: "text-gray-600",   dot: "bg-gray-400",   label: "요청 대기" },
+          "analyzing" => { bg: "bg-amber-100",  text: "text-amber-700",  dot: "bg-amber-500",  label: "분석 중"   },
+          "completed" => { bg: "bg-green-100",  text: "text-green-700",  dot: "bg-green-500",  label: "완료"      },
+          "failed"    => { bg: "bg-red-100",    text: "text-red-700",    dot: "bg-red-500",    label: "실패"      }
+        }.freeze %>
+        <% style = status_styles[@report.status] || status_styles["pending"] %>
+        <span
+          data-component="status-badge"
+          data-status="<%= @report.status %>"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold <%= style[:bg] %> <%= style[:text] %>"
+          aria-label="리포트 상태: <%= style[:label] %>"
+        >
+          <%# 상태 표시 점 %>
+          <span class="w-1.5 h-1.5 rounded-full <%= style[:dot] %>" aria-hidden="true"></span>
+          <%= style[:label] %>
+        </span>
+      </div>
+
+      <%# 하단 행: 생성일 + 상품 정보 (있는 경우) %>
+      <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-500 border-t border-gray-50 pt-4">
+        <%# 생성일 %>
+        <div class="flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>요청일</span>
+          <time
+            data-field="created-at"
+            datetime="<%= @report.created_at.iso8601 %>"
+            class="font-medium text-gray-700"
+          >
+            <%= @report.created_at.strftime("%Y.%m.%d") %>
+          </time>
+        </div>
+
+        <%# 완료일 (완료된 경우에만) %>
+        <% if @report.completed_at.present? %>
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>완료일</span>
+            <time
+              datetime="<%= @report.completed_at.iso8601 %>"
+              class="font-medium text-gray-700"
+            >
+              <%= @report.completed_at.strftime("%Y.%m.%d") %>
+            </time>
+          </div>
+        <% end %>
+
+        <%# 상품 정보 (있는 경우) %>
+        <% if @report.product_info.present? %>
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span class="font-medium text-gray-700 truncate max-w-[200px]"><%= @report.product_info %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <%# ReportHeader 종료 %>
+
+    <%# ===== 분석 완료 여부에 따라 두 가지 레이아웃 ===== %>
+    <% if @report.completed? && @recommended_channels.present? %>
+
+      <%# ===== RecommendedChannels: AI 추천 채널 목록 ===== %>
+      <div
+        data-component="recommended-channels"
+        class="bg-white rounded-2xl border border-blue-100 shadow-sm mb-5"
+      >
+        <%# 섹션 헤더 %>
+        <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-gray-900">AI 추천 채널</h2>
+            <p class="text-xs text-gray-500 mt-0.5">광고적합성 높은순으로 정렬됩니다.</p>
+          </div>
+          <%# 채널 수 배지 %>
+          <span class="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+            <%= @recommended_channels.length %>개
+          </span>
+        </div>
+
+        <%# 채널 목록 %>
+        <ul class="divide-y divide-gray-50" role="list">
+          <% @recommended_channels.each_with_index do |channel, index| %>
+            <li
+              data-component="channel-item"
+              data-index="<%= index %>"
+              class="px-6 py-4 flex items-center gap-4 hover:bg-blue-50/30 transition-colors"
+            >
+              <%# 순위 번호 %>
+              <div
+                class="flex-shrink-0 w-8 h-8 rounded-full <%= index < 3 ? 'bg-blue-800 text-white' : 'bg-gray-100 text-gray-500' %> flex items-center justify-center text-sm font-bold"
+                aria-label="순위 <%= index + 1 %>위"
+              >
+                <%= index + 1 %>
+              </div>
+
+              <%# 채널 이름 + 카테고리 %>
+              <div class="flex-1 min-w-0">
+                <p
+                  data-field="channel-name"
+                  class="text-sm font-semibold text-gray-900 truncate"
+                >
+                  <%= channel["channel_name"] %>
+                </p>
+                <% if channel["category"].present? %>
+                  <p class="text-xs text-gray-500 mt-0.5"><%= channel["category"] %></p>
+                <% end %>
+              </div>
+
+              <%# 신뢰도 점수 %>
+              <% if channel["trust_score"].present? %>
+                <div class="text-center flex-shrink-0">
+                  <p
+                    data-field="trust-score"
+                    class="text-base font-bold text-blue-800"
+                    aria-label="신뢰도 <%= channel['trust_score'] %>점"
+                  >
+                    <%= channel["trust_score"] %>
+                  </p>
+                  <p class="text-[10px] text-gray-400 leading-none">신뢰도</p>
+                </div>
+              <% end %>
+
+              <%# 광고적합성 점수 (fit_score) %>
+              <% if channel["fit_score"].present? %>
+                <div class="text-center flex-shrink-0">
+                  <p
+                    data-field="fit-score"
+                    class="text-base font-bold text-green-700"
+                    aria-label="적합성 <%= channel['fit_score'] %>점"
+                  >
+                    <%= channel["fit_score"] %>
+                  </p>
+                  <p class="text-[10px] text-gray-400 leading-none">적합성</p>
+                </div>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+      <%# RecommendedChannels 종료 %>
+
+      <%# ===== ReportContent: 리포트 본문 ===== %>
+      <% if @report_data.present? %>
+        <div
+          data-component="report-content"
+          class="bg-white rounded-2xl border border-blue-100 shadow-sm p-6"
+        >
+          <h2 class="text-base font-bold text-gray-900 mb-4">분석 리포트</h2>
+
+          <%# 종합 요약 %>
+          <% if @report_data["summary"].present? %>
+            <div class="mb-4">
+              <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">종합 요약</h3>
+              <p
+                data-field="report-summary"
+                class="text-sm text-gray-700 leading-relaxed bg-blue-50 rounded-xl px-4 py-3"
+              >
+                <%= @report_data["summary"] %>
+              </p>
+            </div>
+          <% end %>
+
+          <%# 리스크 수준 %>
+          <% if @report_data["risk_level"].present? %>
+            <% risk_styles = {
+              "low"    => { bg: "bg-green-50",  text: "text-green-700",  label: "낮음" },
+              "medium" => { bg: "bg-amber-50",  text: "text-amber-700",  label: "보통" },
+              "high"   => { bg: "bg-red-50",    text: "text-red-700",    label: "높음" }
+            }.freeze %>
+            <% risk = risk_styles[@report_data["risk_level"]] || risk_styles["medium"] %>
+            <div class="flex items-center gap-3 mb-4">
+              <span class="text-xs font-semibold text-gray-500">브랜드 리스크</span>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold <%= risk[:bg] %> <%= risk[:text] %>">
+                <%= risk[:label] %>
+              </span>
+            </div>
+          <% end %>
+
+          <%# 분석 채널 수 %>
+          <% if @report_data["total_channels_analyzed"].present? %>
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-semibold text-gray-500">분석 채널 수</span>
+              <span class="text-sm font-bold text-blue-800">
+                <%= @report_data["total_channels_analyzed"] %>개
+              </span>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+      <%# ReportContent 종료 %>
+
+    <% elsif @report.analyzing? %>
+
+      <%# 분석 중 안내 메시지 %>
+      <div
+        data-component="analyzing-message"
+        class="bg-white rounded-2xl border border-amber-100 shadow-sm p-10 text-center"
+      >
+        <%# 로딩 스피너 아이콘 %>
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 mb-4">
+          <svg class="w-8 h-8 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-gray-900 mb-2">분석 중입니다</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          AI가 채널을 분석하고 있습니다.<br>
+          완료되면 이메일로 알려드립니다.
+        </p>
+      </div>
+
+    <% else %>
+
+      <%# pending 또는 기타 상태 안내 메시지 %>
+      <div
+        data-component="analyzing-message"
+        class="bg-white rounded-2xl border border-blue-100 shadow-sm p-10 text-center"
+      >
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
+          <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-gray-900 mb-2">분석 대기 중</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          리포트 분석이 곧 시작됩니다.<br>
+          완료되면 이메일로 알려드립니다.
+        </p>
+      </div>
+
+    <% end %>
+
+  </main>
+</div>

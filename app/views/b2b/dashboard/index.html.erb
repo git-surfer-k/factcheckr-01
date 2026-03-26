@@ -1,0 +1,177 @@
+<%# @TASK P5-S2-T1 - B2B 대시보드 메인 화면 %>
+<%# @SPEC specs/screens/b2b-dashboard.yaml %>
+<%# 구독 상태 카드, 최근 리포트 목록, 새 리포트 CTA 버튼 포함 %>
+
+<% content_for :title, "대시보드 — Factis for Business" %>
+
+<div class="px-8 py-8 max-w-5xl">
+
+  <%# 페이지 헤더 %>
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-blue-900">대시보드</h1>
+    <p class="mt-1 text-sm text-gray-500">광고적합성 분석 현황과 구독 정보를 확인하세요.</p>
+  </div>
+
+  <%# 상단 섹션: 구독 카드 + 새 리포트 버튼 %>
+  <div class="flex flex-col sm:flex-row gap-4 mb-8">
+
+    <%# 구독 상태 카드 %>
+    <div
+      data-component="subscription-card"
+      class="flex-1 bg-white rounded-2xl border border-blue-100 shadow-sm p-6"
+    >
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">현재 구독 플랜</p>
+
+          <% if @subscription %>
+            <%# 플랜 이름 매핑: enum key → 표시 이름 %>
+            <% plan_names = {
+              "b2b_standard"   => "B2B Standard",
+              "b2b_enterprise" => "B2B Enterprise"
+            } %>
+            <h2 class="text-xl font-bold text-gray-900 mb-1">
+              <%= plan_names[@subscription.plan_type] || @subscription.plan_type.humanize %>
+            </h2>
+
+            <% if @subscription.expires_at.present? %>
+              <p class="text-sm text-gray-500">
+                만료일:
+                <span class="font-medium text-gray-700">
+                  <%= @subscription.expires_at.strftime("%Y년 %m월 %d일") %>
+                </span>
+              </p>
+            <% end %>
+
+            <%# 구독 상태 배지 %>
+            <% if @subscription.currently_active? %>
+              <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+                활성
+              </span>
+            <% else %>
+              <span class="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500" aria-hidden="true"></span>
+                만료됨
+              </span>
+            <% end %>
+
+          <% else %>
+            <%# 구독 없음 상태 %>
+            <h2 class="text-xl font-bold text-gray-400 mb-1">플랜 없음</h2>
+            <p class="text-sm text-gray-400">구독 플랜을 선택해 리포트를 이용하세요.</p>
+            <%= link_to "구독 신청", b2b_billing_path,
+                  class: "inline-block mt-3 text-sm font-semibold text-blue-700 hover:text-blue-900 underline underline-offset-2" %>
+          <% end %>
+        </div>
+
+        <%# 아이콘 %>
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 shrink-0 ml-4">
+          <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <%# 새 리포트 요청 CTA 카드 %>
+    <div class="sm:w-64 bg-blue-800 rounded-2xl shadow-sm p-6 flex flex-col justify-between">
+      <div>
+        <p class="text-xs font-semibold text-blue-200 uppercase tracking-wide mb-1">채널 분석</p>
+        <h2 class="text-lg font-bold text-white mb-2">새 리포트 요청</h2>
+        <p class="text-sm text-blue-300">유튜브 채널의 광고적합성을 AI로 분석합니다.</p>
+      </div>
+      <%= link_to b2b_new_report_path,
+            data: { action: "new-report" },
+            class: "mt-6 inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white text-blue-800 font-semibold text-sm rounded-xl hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-800" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        새 리포트 요청
+      <% end %>
+    </div>
+  </div>
+
+  <%# 최근 리포트 목록 %>
+  <section
+    data-component="recent-reports"
+    aria-labelledby="recent-reports-heading"
+  >
+    <div class="flex items-center justify-between mb-4">
+      <h2 id="recent-reports-heading" class="text-base font-semibold text-gray-900">
+        최근 리포트
+      </h2>
+    </div>
+
+    <% if @recent_reports.any? %>
+      <%# 리포트 목록 테이블 %>
+      <div class="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
+        <ul role="list" class="divide-y divide-gray-100">
+          <% @recent_reports.each do |report| %>
+            <li>
+              <%# 리포트 상태 배지 색상 매핑 %>
+              <% status_styles = {
+                "pending"   => "bg-gray-100 text-gray-600",
+                "analyzing" => "bg-yellow-100 text-yellow-700",
+                "completed" => "bg-green-100 text-green-700",
+                "failed"    => "bg-red-100 text-red-700"
+              } %>
+              <% status_labels = {
+                "pending"   => "대기 중",
+                "analyzing" => "분석 중",
+                "completed" => "완료",
+                "failed"    => "실패"
+              } %>
+
+              <%= link_to report_path(report),
+                    class: "flex items-center justify-between px-6 py-4 hover:bg-blue-50 transition-colors group" do %>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-sm font-semibold text-gray-900 group-hover:text-blue-800 transition-colors">
+                    <%= report.company_name %>
+                  </span>
+                  <span class="text-xs text-gray-400">
+                    요청일: <%= report.created_at.strftime("%Y. %m. %d") %>
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <%# 상태 배지 %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= status_styles[report.status] || 'bg-gray-100 text-gray-600' %>">
+                    <%= status_labels[report.status] || report.status %>
+                  </span>
+                  <%# 화살표 %>
+                  <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+
+    <% else %>
+      <%# 빈 상태 안내 %>
+      <div
+        data-component="empty-reports"
+        class="bg-white rounded-2xl border border-blue-100 shadow-sm px-6 py-12 text-center"
+      >
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 mx-auto mb-4">
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        </div>
+        <p class="text-sm font-semibold text-gray-700 mb-1">아직 리포트가 없습니다</p>
+        <p class="text-sm text-gray-400 mb-6">새 리포트를 요청하여 채널 광고적합성을 분석해 보세요.</p>
+        <%= link_to "첫 리포트 요청하기", b2b_new_report_path,
+              data: { action: "new-report" },
+              class: "inline-flex items-center gap-2 px-5 py-2.5 bg-blue-800 text-white text-sm font-semibold rounded-xl hover:bg-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2" %>
+      </div>
+    <% end %>
+  </section>
+
+</div>

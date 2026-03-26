@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 # @TASK P0-T0.4 - Email OTP 인증 라우트
+# @TASK P5-S1-T1 - B2B 로그인 라우트
 # @TASK P1-R1-T1 - Users/Auth API 라우트 보강
 # @TASK P1-S0-T1 - 공통 레이아웃 웹 페이지 라우트
 # @TASK P2-R1-T1 - FactChecks API 라우트 추가
@@ -8,6 +9,7 @@
 # @TASK P3-R1-T1 - Channels API 라우트 (목록/랭킹, 상세 조회)
 # @TASK P3-R2-T1 - ChannelScores API 라우트 (channels 하위 nested resource)
 # @TASK P3-R3-T1 - ChannelTags API 라우트 (channels 하위 nested resource)
+# @TASK P5-R1-T1 - B2B Reports API 라우트 (b2b 네임스페이스)
 Rails.application.routes.draw do
   # 웹 페이지 라우트 (PagesController)
   root "pages#home"
@@ -51,7 +53,27 @@ Rails.application.routes.draw do
       # Subscriptions (구독 관리)
       get 'subscriptions/current', to: 'subscriptions#current'
       resources :subscriptions, only: %i[create update destroy]
+
+      # B2B Reports (B2B 광고적합성 리포트)
+      namespace :b2b do
+        resources :reports, only: %i[create show index]
+      end
     end
+  end
+
+  # @TASK P5-S1-T1 - B2B 전용 namespace 라우트
+  # @TASK P5-S2-T1 - B2B 대시보드 라우트 추가
+  # @TASK P5-S3-T1 - B2B 리포트 요청 웹 라우트
+  # @TASK P5-S4-T1 - B2B 리포트 상세 웹 라우트
+  # @TASK P5-S5-T1 - B2B 결제 관리 웹 라우트
+  namespace :b2b do
+    get  "/login",        to: "sessions#new",     as: :login
+    post "/login",        to: "sessions#create"
+    get  "/dashboard",    to: "dashboard#index",  as: :dashboard
+    get  "/reports/new",  to: "reports#new",      as: :new_report
+    # 리포트 상세 페이지 (/b2b/reports/:id) - new보다 아래에 위치해야 충돌 없음
+    get  "/reports/:id",  to: "reports#show",     as: :report
+    get  "/billing",      to: "billing#index",    as: :billing
   end
 
   # Health check

@@ -1,0 +1,338 @@
+<%# @TASK P5-S3-T1 - B2B 리포트 요청 화면 %>
+<%# @SPEC specs/screens/b2b-report-request.yaml %>
+<%# 기업 정보, 상품 정보, 타겟 카테고리를 입력하여 광고적합성 리포트를 요청한다. %>
+<%# 제출 시 POST /api/v1/b2b/reports 로 fetch 전송 후 대시보드로 이동한다. %>
+
+<% content_for :title, "리포트 요청 — Factis for Business" %>
+
+<%# 페이지 스크롤 진행 중 API 요청 상태 표시용 JavaScript %>
+<% content_for :head do %>
+  <script>
+    // 폼 제출: POST /api/v1/b2b/reports 호출 후 대시보드로 이동
+    function submitReportRequest(event) {
+      event.preventDefault();
+
+      var form = document.getElementById("report-request-form");
+      var submitBtn = document.getElementById("submit-btn");
+      var submitText = document.getElementById("submit-text");
+      var submitSpinner = document.getElementById("submit-spinner");
+      var errorBanner = document.getElementById("error-banner");
+      var errorMessage = document.getElementById("error-message");
+
+      // 필수 필드 검증
+      var companyName = form.querySelector("[name='company_name']").value.trim();
+      var industry = form.querySelector("[name='industry']").value.trim();
+
+      if (!companyName) {
+        showError("기업명을 입력해 주세요.");
+        return;
+      }
+      if (!industry) {
+        showError("업종을 입력해 주세요.");
+        return;
+      }
+
+      // 선택된 카테고리 수집
+      var checkedCategories = [];
+      form.querySelectorAll("[name='target_categories[]']:checked").forEach(function(cb) {
+        checkedCategories.push(cb.value);
+      });
+
+      // 요청 payload 구성
+      var payload = {
+        company_name: companyName,
+        industry: industry,
+        product_info: form.querySelector("[name='product_info']").value.trim(),
+        target_categories: checkedCategories
+      };
+
+      // 제출 버튼 로딩 상태 전환
+      submitBtn.disabled = true;
+      submitText.textContent = "요청 중...";
+      submitSpinner.classList.remove("hidden");
+      errorBanner.classList.add("hidden");
+
+      // CSRF 토큰 가져오기
+      var csrfToken = document.querySelector("meta[name='csrf-token']")
+        ? document.querySelector("meta[name='csrf-token']").getAttribute("content")
+        : "";
+
+      // POST /api/v1/b2b/reports 호출
+      fetch("/api/v1/b2b/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken
+        },
+        body: JSON.stringify({ report: payload })
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          return response.json().then(function(data) {
+            throw new Error(data.message || data.error || "요청 처리 중 오류가 발생했습니다.");
+          });
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        // 성공 시 대시보드로 이동 (report id가 있으면 해당 페이지로)
+        var redirectUrl = data.id ? "/b2b/reports/" + data.id : "/b2b/dashboard";
+        window.location.href = redirectUrl;
+      })
+      .catch(function(error) {
+        showError(error.message);
+        submitBtn.disabled = false;
+        submitText.textContent = "리포트 요청하기";
+        submitSpinner.classList.add("hidden");
+      });
+    }
+
+    // 에러 배너 표시
+    function showError(message) {
+      var errorBanner = document.getElementById("error-banner");
+      var errorMessage = document.getElementById("error-message");
+      errorMessage.textContent = message;
+      errorBanner.classList.remove("hidden");
+      errorBanner.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  </script>
+<% end %>
+
+<%# 페이지 전체 컨테이너 %>
+<div class="min-h-screen py-10 px-4" data-component="report-request-page">
+
+  <%# 콘텐츠 최대 너비 제한 %>
+  <div class="max-w-2xl mx-auto">
+
+    <%# 페이지 헤더 %>
+    <div class="mb-8" data-component="page-header">
+      <%# B2B 브랜딩 %>
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-9 h-9 rounded-xl bg-blue-800 flex items-center justify-center shadow-sm flex-shrink-0">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+        </div>
+        <span class="text-sm font-semibold text-blue-800 tracking-wide uppercase">
+          Factis for Business
+        </span>
+      </div>
+
+      <h1 class="text-2xl font-bold text-gray-900 leading-tight" data-field="page-title">
+        광고적합성 리포트 요청
+      </h1>
+      <p class="mt-2 text-sm text-gray-500" data-field="page-description">
+        기업 정보와 광고 대상 상품을 입력하면, AI가 유튜브 채널의 광고적합성을 분석한 리포트를 제공합니다.
+      </p>
+    </div>
+
+    <%# 에러 배너 (기본 숨김) %>
+    <div
+      id="error-banner"
+      role="alert"
+      aria-live="assertive"
+      class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3"
+      data-component="error-banner"
+    >
+      <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <p id="error-message" class="text-sm text-red-700 font-medium"></p>
+    </div>
+
+    <%# 리포트 요청 폼 카드 %>
+    <div class="bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden" data-component="report-form-card">
+
+      <form
+        id="report-request-form"
+        onsubmit="submitReportRequest(event)"
+        novalidate
+        aria-label="광고적합성 리포트 요청 폼"
+        data-component="company-form"
+      >
+
+        <%# ── 섹션 1: 기업 정보 ── %>
+        <div class="px-8 pt-8 pb-6 border-b border-gray-100" data-section="company-info">
+          <h2 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-bold flex items-center justify-center flex-shrink-0" aria-hidden="true">1</span>
+            기업 정보
+          </h2>
+
+          <div class="space-y-5">
+            <%# 기업명 (필수) %>
+            <div data-field-group="company-name">
+              <label for="company_name" class="block text-sm font-medium text-gray-700 mb-1.5">
+                기업명
+                <span class="text-red-500 ml-0.5" aria-label="필수 항목">*</span>
+              </label>
+              <input
+                type="text"
+                id="company_name"
+                name="company_name"
+                placeholder="예: 삼성전자"
+                required
+                autocomplete="organization"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder-gray-400
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       transition-colors duration-200"
+                aria-required="true"
+                aria-describedby="company-name-hint"
+                data-field="company-name-input"
+              >
+              <p id="company-name-hint" class="mt-1.5 text-xs text-gray-400">
+                정식 법인명 또는 브랜드명을 입력해 주세요.
+              </p>
+            </div>
+
+            <%# 업종 (필수) %>
+            <div data-field-group="industry">
+              <label for="industry" class="block text-sm font-medium text-gray-700 mb-1.5">
+                업종
+                <span class="text-red-500 ml-0.5" aria-label="필수 항목">*</span>
+              </label>
+              <input
+                type="text"
+                id="industry"
+                name="industry"
+                placeholder="예: 전자제품, 금융, 식품음료"
+                required
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder-gray-400
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                       transition-colors duration-200"
+                aria-required="true"
+                data-field="industry-input"
+              >
+            </div>
+          </div>
+        </div>
+
+        <%# ── 섹션 2: 상품 정보 ── %>
+        <div class="px-8 py-6 border-b border-gray-100" data-section="product-info">
+          <h2 class="text-base font-semibold text-gray-900 mb-5 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-bold flex items-center justify-center flex-shrink-0" aria-hidden="true">2</span>
+            상품 정보
+            <span class="text-xs font-normal text-gray-400">(선택)</span>
+          </h2>
+
+          <div data-field-group="product-info">
+            <label for="product_info" class="block text-sm font-medium text-gray-700 mb-1.5">
+              광고 대상 상품·서비스 설명
+            </label>
+            <textarea
+              id="product_info"
+              name="product_info"
+              rows="4"
+              placeholder="예: 중장년층을 위한 건강기능식품 브랜드로, 면역력 강화 제품 라인을 광고하려 합니다."
+              class="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder-gray-400
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                     transition-colors duration-200 resize-none"
+              aria-describedby="product-info-hint"
+              data-field="product-info-input"
+            ></textarea>
+            <p id="product-info-hint" class="mt-1.5 text-xs text-gray-400">
+              상품의 특성과 타겟 소비자를 함께 입력하면 더 정확한 리포트를 받을 수 있습니다.
+            </p>
+          </div>
+        </div>
+
+        <%# ── 섹션 3: 타겟 카테고리 ── %>
+        <div class="px-8 py-6 border-b border-gray-100" data-section="target-categories">
+          <h2 class="text-base font-semibold text-gray-900 mb-1.5 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-bold flex items-center justify-center flex-shrink-0" aria-hidden="true">3</span>
+            타겟 카테고리
+            <span class="text-xs font-normal text-gray-400">(선택)</span>
+          </h2>
+          <p class="text-xs text-gray-400 mb-5 ml-8">
+            광고를 집행할 유튜브 채널의 콘텐츠 유형을 선택해 주세요. (복수 선택 가능)
+          </p>
+
+          <fieldset>
+            <legend class="sr-only">타겟 카테고리 선택</legend>
+            <div class="grid grid-cols-2 gap-3" data-component="category-checkboxes">
+              <% @target_categories.each do |category| %>
+                <label
+                  class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer
+                         hover:border-blue-300 hover:bg-blue-50 transition-colors duration-200
+                         has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"
+                  data-category="<%= category %>"
+                >
+                  <input
+                    type="checkbox"
+                    name="target_categories[]"
+                    value="<%= category %>"
+                    class="w-4 h-4 rounded border-gray-300 text-blue-700
+                           focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+                           accent-blue-700"
+                    data-field="category-checkbox"
+                  >
+                  <span class="text-sm font-medium text-gray-700"><%= category %></span>
+                </label>
+              <% end %>
+            </div>
+          </fieldset>
+        </div>
+
+        <%# ── 제출 영역 ── %>
+        <div class="px-8 py-6" data-section="form-actions">
+          <%# 안내 문구 %>
+          <p class="text-xs text-gray-400 mb-5 leading-relaxed">
+            리포트 생성에는 최대 5~10분이 소요될 수 있습니다.
+            완료 시 입력하신 이메일로 알림을 보내드립니다.
+          </p>
+
+          <button
+            id="submit-btn"
+            type="submit"
+            class="w-full flex items-center justify-center gap-2
+                   bg-blue-800 hover:bg-blue-900 active:bg-blue-950
+                   text-white font-semibold text-sm
+                   px-6 py-4 rounded-xl
+                   transition-colors duration-200
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                   disabled:opacity-60 disabled:cursor-not-allowed"
+            aria-label="광고적합성 리포트 요청하기"
+            data-component="submit-button"
+          >
+            <%# 로딩 스피너 (기본 숨김) %>
+            <svg
+              id="submit-spinner"
+              class="hidden w-4 h-4 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            <span id="submit-text">리포트 요청하기</span>
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <%# 안내 박스: 분석 프로세스 설명 %>
+    <div class="mt-6 p-5 bg-blue-50 rounded-xl border border-blue-100" data-component="process-info">
+      <h3 class="text-sm font-semibold text-blue-900 mb-3">분석 프로세스</h3>
+      <ol class="space-y-2">
+        <li class="flex items-start gap-2 text-xs text-blue-700">
+          <span class="w-4 h-4 rounded-full bg-blue-200 text-blue-800 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">1</span>
+          기업·상품 정보 분석 및 적합 채널 후보 선별
+        </li>
+        <li class="flex items-start gap-2 text-xs text-blue-700">
+          <span class="w-4 h-4 rounded-full bg-blue-200 text-blue-800 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">2</span>
+          빅카인즈 뉴스 빅데이터 기반 채널 신뢰도 평가
+        </li>
+        <li class="flex items-start gap-2 text-xs text-blue-700">
+          <span class="w-4 h-4 rounded-full bg-blue-200 text-blue-800 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5" aria-hidden="true">3</span>
+          광고적합성 종합 리포트 생성 및 이메일 발송
+        </li>
+      </ol>
+    </div>
+
+  </div>
+</div>
