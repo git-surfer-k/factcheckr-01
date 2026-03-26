@@ -331,7 +331,7 @@ flowchart TD
 
 ### P3-R1: Channels Resource
 
-#### [ ] P3-R1-T1: Channels API 구현
+#### [x] P3-R1-T1: Channels API 구현
 - **담당**: backend-specialist
 - **리소스**: channels
 - **엔드포인트**:
@@ -345,7 +345,7 @@ flowchart TD
 
 ### P3-R2: ChannelScores Resource
 
-#### [ ] P3-R2-T1: ChannelScores API 구현
+#### [x] P3-R2-T1: ChannelScores API 구현
 - **담당**: backend-specialist
 - **리소스**: channel_scores
 - **엔드포인트**:
@@ -358,7 +358,7 @@ flowchart TD
 
 ### P3-R3: ChannelTags Resource
 
-#### [ ] P3-R3-T1: ChannelTags API 구현
+#### [x] P3-R3-T1: ChannelTags API 구현
 - **담당**: backend-specialist
 - **리소스**: channel_tags
 - **엔드포인트**:
@@ -372,7 +372,7 @@ flowchart TD
 
 ### P3-S1: 채널 상세 화면
 
-#### [ ] P3-S1-T1: 채널 상세 화면 UI 구현
+#### [x] P3-S1-T1: 채널 상세 화면 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /channels/:id (b2c-channel-detail.yaml)
 - **컴포넌트**: ChannelHeader (summary-card), ScoreTrendChart (chart), SubMetrics (stat-card x3), CheckHistory (list)
@@ -384,7 +384,7 @@ flowchart TD
 - **데모 상태**: loading, normal
 - **참조**: `design/screens/web-channel-detail.png`, `design/screens/b2c-channel-detail.png`
 
-#### [ ] P3-S1-V: 채널 상세 연결점 검증
+#### [x] P3-S1-V: 채널 상세 연결점 검증
 - **담당**: test-specialist
 - **화면**: /channels/:id
 - **검증 항목**:
@@ -396,7 +396,7 @@ flowchart TD
 
 ### P3-S2: 채널 랭킹 화면
 
-#### [ ] P3-S2-T1: 채널 랭킹 화면 UI 구현
+#### [x] P3-S2-T1: 채널 랭킹 화면 UI 구현
 - **담당**: frontend-specialist
 - **화면**: /ranking (b2c-ranking.yaml)
 - **컴포넌트**: CategoryTabs (tabs — 정치/경제/사회/국제), TagFilter (filter-form), RankingList (list)
@@ -408,7 +408,7 @@ flowchart TD
 - **데모 상태**: loading, normal, filtered
 - **참조**: `design/screens/web-ranking.png`, `design/screens/b2c-ranking.png`
 
-#### [ ] P3-S2-V: 채널 랭킹 연결점 검증
+#### [x] P3-S2-V: 채널 랭킹 연결점 검증
 - **담당**: test-specialist
 - **화면**: /ranking
 - **검증 항목**:
