@@ -187,8 +187,7 @@
 </div>
 
 <%# ===== JavaScript: 이름 수정 + 로그아웃 처리 ===== %>
-<% content_for :head do %>
-  <script>
+<script>
     // 이름 수정 폼 처리
     (function() {
       const form = document.querySelector("form[data-component='name-edit-form']");
@@ -290,5 +289,4 @@
         }
       });
     })();
-  </script>
-<% end %>
+</script>
