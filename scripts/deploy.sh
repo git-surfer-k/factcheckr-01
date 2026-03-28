@@ -1,12 +1,12 @@
 #!/bin/bash
-# Factis 배포 스크립트 — 서버에서 git pull 후 Docker Compose 재빌드
+# FactCheckr 배포 스크립트 — 서버에서 git pull 후 Docker Compose 재빌드
 set -e
 
 SERVER="root@158.247.227.111"
-APP_DIR="/opt/factis"
-REPO="https://github.com/git-surfer-k/factis-01.git"
+APP_DIR="/opt/factcheckr"
+REPO="https://github.com/git-surfer-k/factcheckr-01.git"
 
-echo "=== Factis 배포 시작 ==="
+echo "=== FactCheckr 배포 시작 ==="
 
 # 1. 서버에 앱 디렉토리 생성 + 코드 배포
 echo "[1/4] 코드 배포..."

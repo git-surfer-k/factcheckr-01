@@ -16,7 +16,7 @@
 ## 프로젝트 구조
 
 ```
-factis-01/
+factcheckr-01/
 ├── TASKS.md                  # 태스크 목록 (32개)
 ├── CLAUDE.md                 # 이 파일
 ├── docker-compose.yml        # PostgreSQL + pgvector

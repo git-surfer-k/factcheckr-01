@@ -2,7 +2,7 @@ services:
   # Rails 웹 서버 (프론트엔드 + 백엔드 API)
   web:
     build: .
-    container_name: factis_web
+    container_name: factcheckr_web
     restart: unless-stopped
     ports:
       - "80:80"
@@ -21,28 +21,28 @@ services:
     build:
       context: ./ai_server
       dockerfile: Dockerfile
-    container_name: factis_ai
+    container_name: factcheckr_ai
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      FACTIS_OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
-      FACTIS_BIGKINDS_API_KEY: "${BIGKINDS_API_KEY:-}"
-      FACTIS_RAILS_API_URL: "http://web:80"
+      FACTCHECKR_OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      FACTCHECKR_BIGKINDS_API_KEY: "${BIGKINDS_API_KEY:-}"
+      FACTCHECKR_RAILS_API_URL: "http://web:80"
 
   # PostgreSQL + pgvector (프로덕션 DB)
   db:
     image: pgvector/pgvector:pg16
-    container_name: factis_db
+    container_name: factcheckr_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: factis
+      POSTGRES_USER: factcheckr
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      POSTGRES_DB: factis_production
+      POSTGRES_DB: factcheckr_production
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U factis"]
+      test: ["CMD-SHELL", "pg_isready -U factcheckr"]
       interval: 10s
       timeout: 5s
       retries: 5

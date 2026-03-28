@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     whisper_model: str = "base"
 
     # 다운로드 경로
-    download_dir: str = "/tmp/factis_downloads"
+    download_dir: str = "/tmp/factcheckr_downloads"
 
     # Rails 서버 연동
     rails_api_url: str = "http://localhost:3000"
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     model_config = {
-        "env_prefix": "FACTIS_",
+        "env_prefix": "FACTCHECKR_",
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "extra": "ignore",

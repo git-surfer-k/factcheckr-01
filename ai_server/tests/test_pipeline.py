@@ -155,8 +155,8 @@ class TestSettings:
         assert settings.bigkinds_search_days == 365
 
     def test_env_prefix(self):
-        """환경변수 접두사가 FACTIS_인지 확인합니다."""
-        assert Settings.model_config["env_prefix"] == "FACTIS_"
+        """환경변수 접두사가 FACTCHECKR_인지 확인합니다."""
+        assert Settings.model_config["env_prefix"] == "FACTCHECKR_"
 
 
 # ==========================================
